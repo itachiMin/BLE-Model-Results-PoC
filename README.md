@@ -9,7 +9,7 @@
 Download the docker image `tamarin-container_1.8.0.tar` from the following link and cope it to folder `./ExpRun/files/`.
 - Link to docker image: https://drive.filen.io/d/004b7e20-bfcc-4cc7-b00d-be6a83c491bd#Hw5mfgqslPmVweIhCtyWWUtzCEkgd6Ft
 
-You should config the `./ExpRun/servers.json` with your servers equipped with docker.
+You should configure the `./ExpRun/servers.json` with your servers equipped with docker.
 The user in these servers should have permissions to create docker containers.
 
 
@@ -35,5 +35,13 @@ The attack graphs are listed in the following anonymous link.
 
 # Attack
 The controlled attack environment is shown in the following picture.
+
 ![image](./Attack/controlled-attack-environment.png "Controlled Attack Environment")
+
 The subfolder `./Attack` contains the firmware for the nrf-52840 dongle, the MitM tool `ble_lancet`, the PoCs, and the required python libraries.
+
+In the ubuntu host, the nrf-52840 dongle should be configured as the Bluetooth controller of BlueZ.
+The ubuntu host use BlueZ as the Bluetooth client.
+The two devices start a BLE-SC pairing.
+In the first attack case, the user enter `123456` as the passkey into the two devices.
+In the second attack case, the user enter a random passkey in the first pairing session but reuse this passkey in the second pairing session.
