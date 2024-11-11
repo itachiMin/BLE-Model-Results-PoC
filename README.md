@@ -42,6 +42,6 @@ The subfolder `./Attack` contains the firmware for the nrf-52840 dongle, the Mit
 
 In the ubuntu host, the nrf-52840 dongle should be configured as the Bluetooth controller of BlueZ.
 The ubuntu host use BlueZ as the Bluetooth client.
-The two devices start a BLE-SC pairing.
+The two devices start BLE-SC pairing sessions.
 In the first attack case, the user enter `123456` as the passkey into the two devices.
 In the second attack case, the user enter a random passkey in the first pairing session but reuse this passkey in the second pairing session.
