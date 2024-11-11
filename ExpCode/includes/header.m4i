@@ -1,0 +1,72 @@
+heuristic: S
+
+builtins: diffie-hellman, symmetric-encryption, multiset
+functions: f4/4, g2/4, f5/5, f6/7, resize/2, KDF/2,
+  left/1, right/1, merge/2,
+  brkf4/4,
+  rand2Key/1, rand2Num/1,
+  mapIOCaps2AssM/2, selectAssM/6,
+  DisplayOnly/0, DisplayYesNo/0, KeyboardOnly/0, NoInputNoOutput/0, KeyboardDisplay/0,
+  JW/0, NC/0, 
+  PEII/0, PEID/0, PEDI/0,
+  OOBAS/0,
+  True/0, False/0
+  // LowEntropy/0, HighEntropy/0,
+  // selectSize/2
+
+// selectAssM(OOBFlagI, OOBFlagR, MITMflagI, MITMflagR, IOCapI, IOCapR)
+// Parameters of selectAssM and their order:
+// 1. OOBFlagI: OOB flag of Initiator.
+// 2. OOBFlagR: OOB flag of Responder.
+// 3. MITMflagI: Authentication flag of Initiator.
+// 4. MITMflagR: Authentication flag of Responder.
+// 5. IOCapI: IO capability of Initiator.
+// 6. IOCapR: IO capability of Responder.
+
+equations: 
+  merge(left(x),right(x))                         = x,
+  brkf4(f4(x1,x2,x3,x4),x1,x2,x3)                 = x4,
+
+  // In this work, we only condider HighEntropy devices, so we set the keysize to the peer's MaxKeySize field which is in the pairing request/response, rather then using the selectSize function.
+  // selectSize(HighEntropy, HighEntropy)            = HighEntropy,
+  // selectSize(LowEntropy, x)                       = LowEntropy,
+  // selectSize(x, LowEntropy)                       = LowEntropy,
+
+  selectAssM(x1, True, x3, x4, x5, x6)            = OOBAS,
+  selectAssM(True, x2, x3, x4, x5, x6)            = OOBAS,
+  selectAssM(False, False, False, False, x5, x6)  = JW,
+  selectAssM(False, False, True, x4, x5, x6)      = mapIOCaps2AssM(x5, x6),
+  selectAssM(False, False, x3, True, x5, x6)      = mapIOCaps2AssM(x5, x6),
+
+  mapIOCaps2AssM(DisplayOnly,DisplayOnly)         = JW,
+  mapIOCaps2AssM(DisplayOnly,DisplayYesNo)        = JW,
+  mapIOCaps2AssM(DisplayOnly,KeyboardOnly)        = PEDI,
+  mapIOCaps2AssM(DisplayOnly,KeyboardDisplay)     = PEDI,
+
+  mapIOCaps2AssM(DisplayYesNo,DisplayOnly)        = JW,
+  mapIOCaps2AssM(DisplayYesNo,DisplayYesNo)       = NC,
+  mapIOCaps2AssM(DisplayYesNo,KeyboardOnly)       = PEDI,
+  mapIOCaps2AssM(DisplayYesNo,KeyboardDisplay)    = NC,
+
+  mapIOCaps2AssM(KeyboardOnly,DisplayOnly)        = PEID,
+  mapIOCaps2AssM(KeyboardOnly,DisplayYesNo)       = PEID,
+  mapIOCaps2AssM(KeyboardOnly,KeyboardOnly)       = PEII,
+  mapIOCaps2AssM(KeyboardOnly,KeyboardDisplay)    = PEID,
+
+  mapIOCaps2AssM(KeyboardDisplay,DisplayOnly)     = PEID,
+  mapIOCaps2AssM(KeyboardDisplay,DisplayYesNo)    = NC,
+  mapIOCaps2AssM(KeyboardDisplay,KeyboardOnly)    = PEDI,
+  mapIOCaps2AssM(KeyboardDisplay,KeyboardDisplay) = NC,
+
+  mapIOCaps2AssM(NoInputNoOutput,x)               = JW,
+  mapIOCaps2AssM(x,NoInputNoOutput)               = JW
+
+/* Color of the rules
+  User: #eea2a4
+  Initiator Host: #55bb8a
+  Controller: #e4bf11
+  Responder Host: #fb8b05
+  Channel: #f9f4dc
+  CryptoEngine: #8076a3
+  Break,Malious: #FF3333
+*/

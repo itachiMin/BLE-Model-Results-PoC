@@ -1,0 +1,82 @@
+tactic: type
+presort: S
+prio:
+  regex ".*InS2D\(\s<'IO'.*"
+prio:
+  regex ".*HostState.*"
+
+
+tactic: secrecyOFDHPrivateKey
+presort: S
+prio:
+  regex ".*KU\(\ssenc.*SpecificKeys.*"
+prio:
+  regex ".*KU\(\s~.*DHsk.*"
+
+tactic: secrecyOfDHKey
+presort: S
+prio:
+  regex ".*KU\(\s'g'.*~.*DHsk.*\*~.*DHsk.*\).*"
+
+tactic: default
+presort: S
+prio:
+  regex ".*KU\(\ssenc.*SpecificKeys.*"
+prio:
+  regex ".*KU\(\s'g'.*~.*DHsk.*\*~.*DHsk.*\).*"
+prio:
+  regex ".*KU\(\ssenc.*LL_START_ENC_RSP.*"
+prio:
+  regex "IFinishedAuth2\(.*" | regex "RFinishedAuth2\(.*" | regex "HostFinishedAuth2\(.*" | regex "HostFinishedAuth2Handle\(.*" | regex "Session\(.*" | regex "HostInfo\(.*" | regex "SelectAS\(.*" | regex "SelectASHandle\(.*" 
+prio:
+  regex "CntrollerCommit\(.*" | regex "Commit\(.*" | regex "SecretLTK\(.*" | regex "SecretSK\(.*" | regex "SecretSpecificKeys\(.*"
+prio:
+  regex ".*KU\(\srand2Key\(.*"
+prio:
+  regex ".*KU\(\s~LocalKeys.*"
+prio:
+  regex ".*HostRevOOBData.*"
+prio:
+  regex ".*HostSendTrueOOBFlag.*"
+prio:
+  regex ".*HostState.*"
+prio:
+  regex ".*ControllerState.*"
+prio:
+  regex ".*InS2D\(\s<'HCI',\s'Command'.*" | regex ".*InS2D\(\s<'HCI',\s'Event'.*"
+prio:
+  regex ".*InS2D\(\s'OOB'.*"
+prio:
+  regex ".*InS2D\(\s<'IO'.*"
+prio:
+  regex ".*KU\(\s~LocalRandom.*" | regex ".*KU\(\s~Localskd.*" 
+prio:
+  regex ".*KU\(\sKDF\(.*"
+prio:
+  regex ".*KU\(\sf6\(.*"
+prio:
+  regex ".*KU\(\sresize\(snd\(f5\(.*"
+prio:
+  regex ".*KU\(\sfst\(f5\(.*" | regex ".*KU\(\ssnd\(f5\(.*"
+prio:
+  regex ".*KU\(\sf5\(.*"
+prio:
+  regex ".*KU\(\s~passkey.*"
+prio:
+  regex ".*KU\(\sf4\(.*"
+prio:
+  regex ".*InS2D\(\s.*PairingDHKeyCheck.*"
+prio:
+  regex ".*InS2D\(\s.*PairingConfirm.*"
+prio:
+  regex ".*KU\(\sright\(rand2Num\(~passkey.*"
+prio:
+  regex ".*KU\(\sleft\(rand2Num\(~passkey.*"
+prio:
+  regex ".*KU\(\srand2Num\(~passkey.*"
+prio:
+  regex ".*ChannelState.*"
+deprio:
+  regex ".*KU\(\s~(?!passkey|LocalRandom|PeerRandom|LocalKeys|Localskd|Peerskd).*"
+deprio:
+  regex ".*KU\(\s~PeerRandom.*" | regex ".*KU\(\s~Peerskd.*" 

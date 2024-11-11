@@ -1,0 +1,665 @@
+tactic: type
+presort: S
+prio:
+  regex ".*InS2D\(\s<'IO'.*"
+prio:
+  regex ".*HostState.*"
+
+
+// ! -------------------------------------------------
+tactic: secrecyOFDHPrivateKey
+presort: S
+prio:
+  regex ".*KU\(\ssenc.*SpecificKeys.*"
+prio:
+  regex ".*KU\(\s~.*DHsk.*"
+
+// ! -------------------------------------------------
+tactic: secrecyOfDHKey
+presort: S
+prio:
+  regex ".*KU\(\s'g'.*~.*DHsk.*\*~.*DHsk.*\).*"
+
+// ! -------------------------------------------------
+tactic: tactic4RevOOBDataAlwaysRunOOBAS
+presort: S
+prio:
+  regex ".*\(#vr.*=.*"
+prio:
+  regex ".*KU\(\ssenc.*SpecificKeys.*"
+prio:
+  regex ".*KU\(\s'g'.*~.*DHsk.*\*~.*DHsk.*\).*"
+prio:
+  regex "IFinishedAuth2\(.*" | regex "RFinishedAuth2\(.*"
+prio:
+  regex ".*KU\(\srand2Key\(.*"
+prio:
+  regex ".*HostRevOOBData.*"
+prio:
+  regex ".*HostState.*"
+prio:
+  regex ".*ControllerState.*"
+prio:
+  regex ".*InS2D\(\s<'HCI',\s'Command'.*" | regex ".*InS2D\(\s<'HCI',\s'Event'.*"
+prio:
+  regex ".*InS2D\(\s'OOB'.*"
+prio:
+  regex ".*InS2D\(\s<'IO'.*"
+prio:
+  regex ".*\(#vr.*(?!=).*"
+prio:
+  regex ".*KU\(\s~Local.*"
+prio:
+  regex ".*KU\(\sKDF\(.*"
+prio:
+  regex ".*KU\(\sf6\(.*"
+prio:
+  regex ".*KU\(\sresize\(snd\(f5\(.*"
+prio:
+  regex ".*KU\(\sfst\(f5\(.*" | regex ".*KU\(\ssnd\(f5\(.*"
+prio:
+  regex ".*KU\(\sf5\(.*"
+prio:
+  regex ".*KU\(\s~passkey.*"
+prio:
+  regex ".*KU\(\sf4\(.*"
+prio:
+  regex ".*InS2D\(\s.*PairingDHKeyCheck.*"
+prio:
+  regex ".*InS2D\(\s.*PairingConfirm.*"
+prio:
+  regex ".*KU\(\sright\(rand2Num\(~passkey.*"
+prio:
+  regex ".*KU\(\sleft\(rand2Num\(~passkey.*"
+prio:
+  regex ".*KU\(\srand2Num\(~passkey.*"
+prio:
+  regex ".*ChannelState.*"
+deprio:
+  regex ".*KU\(\s~(?!passkey|Local|Peer).*"
+deprio:
+  regex ".*KU\(\s~Peer.*"
+
+// ! -------------------------------------------------
+tactic: tactic4ASConsistency
+presort: S
+prio:
+  regex ".*\(#vr.*=.*"
+prio:
+  regex ".*KU\(\ssenc.*SpecificKeys.*"
+prio:
+  regex ".*KU\(\s'g'.*~.*DHsk.*\*~.*DHsk.*\).*"
+prio:
+  regex ".*HostRevOOBData.*"
+prio:
+  regex ".*HostState.*"
+prio:
+  regex ".*InS2D\(\s'OOB'.*"
+prio:
+  regex ".*InS2D\(\s<'IO'.*"
+prio:
+  regex ".*\(#vr.*(?!=).*"
+prio:
+  regex ".*KU\(\s~Local.*"
+prio:
+  regex ".*KU\(\sf6\(.*"
+prio:
+  regex ".*KU\(\sresize\(snd\(f5\(.*"
+prio:
+  regex ".*KU\(\sfst\(f5\(.*" | regex ".*KU\(\ssnd\(f5\(.*"
+prio:
+  regex ".*KU\(\sf5\(.*"
+prio:
+  regex ".*KU\(\s~passkey.*"
+prio:
+  regex ".*KU\(\sf4\(.*"
+prio:
+  regex ".*InS2D\(\s.*PairingDHKeyCheck.*"
+prio:
+  regex ".*InS2D\(\s.*PairingConfirm.*"
+prio:
+  regex ".*KU\(\sright\(rand2Num\(~passkey.*" | regex ".*KU\(\sleft\(rand2Num\(~passkey.*"
+prio:
+  regex ".*KU\(\srand2Num\(~passkey.*"
+deprio:
+  regex ".*KU\(\s~(?!passkey|Local|Peer).*"
+deprio:
+  regex ".*KU\(\s~Peer.*"
+
+// ! -------------------------------------------------
+tactic: tactic4AuthIOCaps
+presort: S
+prio:
+  regex ".*\(#vr.*=.*"
+prio:
+  regex ".*KU\(\ssenc.*SpecificKeys.*"
+prio:
+  regex ".*KU\(\s'g'.*~.*DHsk.*\*~.*DHsk.*\).*"
+prio:
+  regex "Commit\(.*"
+prio:
+  regex "Session\(.*"
+prio:
+  regex ".*HostRevOOBData.*"
+prio:
+  regex ".*HostState.*"
+prio:
+  regex ".*InS2D\(\s'OOB'.*"
+prio:
+  regex ".*InS2D\(\s<'IO'.*"
+prio:
+  regex ".*KU\(\s~Local.*" 
+prio:
+  regex ".*KU\(\sf6\(.*"
+prio:
+  regex ".*KU\(\sresize\(snd\(f5\(.*"
+prio:
+  regex ".*KU\(\sfst\(f5\(.*" | regex ".*KU\(\ssnd\(f5\(.*"
+prio:
+  regex ".*KU\(\sf5\(.*"
+prio:
+  regex ".*KU\(\s~passkey.*"
+prio:
+  regex ".*KU\(\sf4\(.*"
+prio:
+  regex ".*InS2D\(\s.*PairingDHKeyCheck.*"
+prio:
+  regex ".*InS2D\(\s.*PairingConfirm.*"
+prio:
+  regex ".*KU\(\sright\(rand2Num\(~passkey.*" | regex ".*KU\(\sleft\(rand2Num\(~passkey.*"
+prio:
+  regex ".*KU\(\srand2Num\(~passkey.*"
+deprio:
+  regex ".*KU\(\s~(?!passkey|Local|Peer).*"
+deprio:
+  regex ".*KU\(\s~Peer.*"
+
+// ! -------------------------------------------------
+tactic: tactic4AuthRandomNumber
+presort: S
+prio:
+  regex ".*\(#vr.*=.*"
+prio:
+  regex ".*KU\(\ssenc.*SpecificKeys.*"
+prio:
+  regex ".*KU\(\s'g'.*~.*DHsk.*\*~.*DHsk.*\).*"
+prio:
+  regex "Commit\(.*"
+prio:
+  regex "Session\(.*"
+prio:
+  regex ".*HostRevOOBData.*"
+prio:
+  regex ".*HostState.*"
+prio:
+  regex ".*InS2D\(\s'OOB'.*"
+prio:
+  regex ".*InS2D\(\s<'IO'.*"
+prio:
+  regex ".*\(#vr.*(?!=).*"
+prio:
+  regex ".*KU\(\s~Local.*"
+prio:
+  regex ".*KU\(\sf6\(.*"
+prio:
+  regex ".*KU\(\sresize\(snd\(f5\(.*"
+prio:
+  regex ".*KU\(\sfst\(f5\(.*" | regex ".*KU\(\ssnd\(f5\(.*"
+prio:
+  regex ".*KU\(\sf5\(.*"
+prio:
+  regex ".*KU\(\s~passkey.*"
+prio:
+  regex ".*KU\(\sf4\(.*"
+prio:
+  regex ".*InS2D\(\s.*PairingDHKeyCheck.*"
+prio:
+  regex ".*InS2D\(\s.*PairingConfirm.*"
+prio:
+  regex ".*KU\(\sright\(rand2Num\(~passkey.*" | regex ".*KU\(\sleft\(rand2Num\(~passkey.*"
+prio:
+  regex ".*KU\(\srand2Num\(~passkey.*"
+deprio:
+  regex ".*KU\(\s~(?!passkey|Local|Peer).*"
+deprio:
+  regex ".*KU\(\s~Peer.*"
+
+// ! -------------------------------------------------
+tactic: tactic4AuthDHKey
+presort: S
+prio:
+  regex ".*\(#vr.*=.*"
+prio:
+  regex ".*KU\(\ssenc.*SpecificKeys.*"
+prio:
+  regex ".*KU\(\s'g'.*~.*DHsk.*\*~.*DHsk.*\).*"
+prio:
+  regex "Commit\(.*"
+prio:
+  regex "Session\(.*"
+prio:
+  regex ".*HostRevOOBData.*"
+prio:
+  regex ".*HostState.*"
+prio:
+  regex ".*InS2D\(\s'OOB'.*"
+prio:
+  regex ".*InS2D\(\s<'IO'.*"
+prio:
+  regex ".*\(#vr.*(?!=).*"
+prio:
+  regex ".*KU\(\s~Local.*"
+prio:
+  regex ".*KU\(\sf6\(.*"
+prio:
+  regex ".*KU\(\sresize\(snd\(f5\(.*"
+prio:
+  regex ".*KU\(\sfst\(f5\(.*" | regex ".*KU\(\ssnd\(f5\(.*"
+prio:
+  regex ".*KU\(\sf5\(.*"
+prio:
+  regex ".*KU\(\s~passkey.*"
+prio:
+  regex ".*KU\(\sf4\(.*"
+prio:
+  regex ".*InS2D\(\s.*PairingDHKeyCheck.*"
+prio:
+  regex ".*InS2D\(\s.*PairingConfirm.*"
+prio:
+  regex ".*KU\(\sright\(rand2Num\(~passkey.*" | regex ".*KU\(\sleft\(rand2Num\(~passkey.*"
+prio:
+  regex ".*KU\(\srand2Num\(~passkey.*"
+deprio:
+  regex ".*KU\(\s~(?!passkey|Local|Peer).*"
+deprio:
+  regex ".*KU\(\s~Peer.*"
+
+// ! -------------------------------------------------
+tactic: tactic4AuthMacKey
+presort: S
+prio:
+  regex ".*\(#vr.*=.*"
+prio:
+  regex ".*KU\(\ssenc.*SpecificKeys.*"
+prio:
+  regex ".*KU\(\s'g'.*~.*DHsk.*\*~.*DHsk.*\).*"
+prio:
+  regex "Commit\(.*"
+prio:
+  regex "Session\(.*"
+prio:
+  regex ".*HostRevOOBData.*"
+prio:
+  regex ".*HostState.*"
+prio:
+  regex ".*InS2D\(\s'OOB'.*"
+prio:
+  regex ".*InS2D\(\s<'IO'.*"
+prio:
+  regex ".*\(#vr.*(?!=).*"
+prio:
+  regex ".*KU\(\s~Local.*"
+prio:
+  regex ".*KU\(\sf6\(.*"
+prio:
+  regex ".*KU\(\sresize\(snd\(f5\(.*"
+prio:
+  regex ".*KU\(\sfst\(f5\(.*" | regex ".*KU\(\ssnd\(f5\(.*"
+prio:
+  regex ".*KU\(\sf5\(.*"
+prio:
+  regex ".*KU\(\s~passkey.*"
+prio:
+  regex ".*KU\(\sf4\(.*"
+prio:
+  regex ".*InS2D\(\s.*PairingDHKeyCheck.*"
+prio:
+  regex ".*InS2D\(\s.*PairingConfirm.*"
+prio:
+  regex ".*KU\(\sright\(rand2Num\(~passkey.*" | regex ".*KU\(\sleft\(rand2Num\(~passkey.*"
+prio:
+  regex ".*KU\(\srand2Num\(~passkey.*"
+deprio:
+  regex ".*KU\(\s~(?!passkey|Local|Peer).*"
+deprio:
+  regex ".*KU\(\s~Peer.*"
+
+// ! -------------------------------------------------
+tactic: tactic4AuthSpecificKeys
+presort: S
+prio:
+  regex ".*\(#vr.*=.*"
+prio:
+  regex ".*KU\(\s'g'.*~.*DHsk.*\*~.*DHsk.*\).*"
+prio:
+  regex ".*KU\(\ssenc.*SpecificKeys.*"
+prio:
+  regex ".*KU\(\ssenc.*LL_START_ENC_RSP.*"
+prio:
+  regex "Commit\(.*"
+prio:
+  regex "Session\(.*"
+prio:
+  regex ".*HostRevOOBData.*"
+prio:
+  regex ".*HostState.*"
+prio:
+  regex ".*InS2D\(\s.*SpecificKeys.*"
+prio:
+  regex ".*InS2D\(\s<'HCI',\s'Command'.*" | regex ".*InS2D\(\s<'HCI',\s'Event'.*"
+prio:
+  regex ".*InS2D\(\s'OOB'.*"
+prio:
+  regex ".*InS2D\(\s<'IO'.*"
+prio:
+  regex ".*\(#vr.*(?!=).*"
+prio:
+  regex ".*KU\(\s~Local.*"
+prio:
+  regex ".*KU\(\sKDF\(.*"
+prio:
+  regex ".*KU\(\sf6\(.*"
+prio:
+  regex ".*KU\(\sresize\(snd\(f5\(.*"
+prio:
+  regex ".*KU\(\sfst\(f5\(.*" | regex ".*KU\(\ssnd\(f5\(.*"
+prio:
+  regex ".*KU\(\sf5\(.*"
+prio:
+  regex ".*KU\(\s~passkey.*"
+prio:
+  regex ".*KU\(\sf4\(.*"
+prio:
+  regex ".*InS2D\(\s.*PairingDHKeyCheck.*"
+prio:
+  regex ".*InS2D\(\s.*PairingConfirm.*"
+prio:
+  regex ".*KU\(\sright\(rand2Num\(~passkey.*" | regex ".*KU\(\sleft\(rand2Num\(~passkey.*"
+prio:
+  regex ".*KU\(\srand2Num\(~passkey.*"
+prio:
+    regex ".*KU\(\srand2Key\(~LocalKeys.*"
+deprio:
+    regex ".*KU\(\srand2Key\(~PeerKeys.*"
+deprio:
+  regex ".*KU\(\s~(?!passkey|Local|Peer).*"
+deprio:
+  regex ".*KU\(\s~Peer.*"
+
+// ! -------------------------------------------------
+tactic: tactic4AuthSK
+presort: S
+prio:
+  regex ".*\(#vr.*=.*"
+prio:
+  regex ".*KU\(\ssenc.*SpecificKeys.*"
+prio:
+  regex ".*KU\(\ssenc.*LL_START_ENC_RSP.*"
+prio:
+  regex ".*KU\(\s'g'.*~.*DHsk.*\*~.*DHsk.*\).*"
+prio:
+  regex "CntrollerCommit\(.*"
+prio:
+  regex "HostInfo\(.*"
+prio:
+  regex "SelectASHandle\(.*"
+prio:
+  regex ".*HostRevOOBData.*"
+prio:
+  regex ".*HostState.*"
+prio:
+  regex ".*InS2D\(\s<'HCI',\s'Command'.*" | regex ".*InS2D\(\s<'HCI',\s'Event'.*"
+prio:
+  regex ".*ControllerState.*"
+prio:
+  regex ".*InS2D\(\s'OOB'.*"
+prio:
+  regex ".*InS2D\(\s<'IO'.*"
+prio:
+  regex ".*\(#vr.*(?!=).*"
+prio:
+  regex ".*KU\(\s~Local.*"
+prio:
+  regex ".*KU\(\sKDF\(.*"
+prio:
+  regex ".*KU\(\sf6\(.*"
+prio:
+  regex ".*KU\(\sresize\(snd\(f5\(.*"
+prio:
+  regex ".*KU\(\sfst\(f5\(.*" | regex ".*KU\(\ssnd\(f5\(.*"
+prio:
+  regex ".*KU\(\sf5\(.*"
+prio:
+  regex ".*KU\(\s~passkey.*"
+prio:
+  regex ".*KU\(\sf4\(.*"
+prio:
+  regex ".*InS2D\(\s.*PairingDHKeyCheck.*"
+prio:
+  regex ".*InS2D\(\s.*PairingConfirm.*"
+prio:
+  regex ".*KU\(\sright\(rand2Num\(~passkey.*" | regex ".*KU\(\sleft\(rand2Num\(~passkey.*"
+prio:
+  regex ".*KU\(\srand2Num\(~passkey.*"
+deprio:
+  regex ".*KU\(\s~(?!passkey|Local|Peer).*"
+deprio:
+  regex ".*KU\(\s~Peer.*"
+
+// ! -------------------------------------------------
+tactic: tactic4AuthLTK
+presort: S
+prio:
+  regex ".*\(#vr.*=.*"
+prio:
+  regex ".*KU\(\ssenc.*SpecificKeys.*"
+prio:
+  regex ".*KU\(\s'g'.*~.*DHsk.*\*~.*DHsk.*\).*"
+prio:
+  regex "Commit\(.*"
+prio:
+  regex "Session\(.*"
+prio:
+  regex ".*HostRevOOBData.*"
+prio:
+  regex ".*HostState.*"
+prio:
+  regex ".*InS2D\(\s'OOB'.*"
+prio:
+  regex ".*InS2D\(\s<'IO'.*"
+prio:
+  regex ".*\(#vr.*(?!=).*"
+prio:
+  regex ".*KU\(\s~Local.*"
+prio:
+  regex ".*KU\(\sf6\(.*"
+prio:
+  regex ".*KU\(\sresize\(snd\(f5\(.*"
+prio:
+  regex ".*KU\(\sfst\(f5\(.*" | regex ".*KU\(\ssnd\(f5\(.*"
+prio:
+  regex ".*KU\(\sf5\(.*"
+prio:
+  regex ".*KU\(\s~passkey.*"
+prio:
+  regex ".*KU\(\sf4\(.*"
+prio:
+  regex ".*InS2D\(\s.*PairingDHKeyCheck.*"
+prio:
+  regex ".*InS2D\(\s.*PairingConfirm.*"
+prio:
+  regex ".*KU\(\sright\(rand2Num\(~passkey.*" | regex ".*KU\(\sleft\(rand2Num\(~passkey.*"
+prio:
+  regex ".*KU\(\srand2Num\(~passkey.*"
+deprio:
+  regex ".*KU\(\s~(?!passkey|Local|Peer).*"
+deprio:
+  regex ".*KU\(\s~Peer.*"
+
+// ! -------------------------------------------------
+tactic: tactic4secrecy_SK
+presort: S
+prio:
+  regex ".*\(#vr.*=.*"
+prio:
+  regex ".*KU\(\ssenc.*SpecificKeys.*"
+prio:
+  regex ".*KU\(\ssenc.*LL_START_ENC_RSP.*"
+prio:
+  regex ".*KU\(\s'g'.*~.*DHsk.*\*~.*DHsk.*\).*"
+prio:
+  regex "SecretSK\(.*"
+prio:
+  regex ".*HostRevOOBData.*"
+prio:
+  regex ".*HostState.*"
+prio:
+  regex ".*ControllerState.*"
+prio:
+  regex ".*InS2D\(\s<'HCI',\s'Command'.*" | regex ".*InS2D\(\s<'HCI',\s'Event'.*"
+prio:
+  regex ".*InS2D\(\s'OOB'.*"
+prio:
+  regex ".*InS2D\(\s<'IO'.*"
+prio:
+  regex ".*\(#vr.*(?!=).*"
+prio:
+  regex ".*KU\(\s~Local.*"
+prio:
+  regex ".*KU\(\sKDF\(.*"
+prio:
+  regex ".*KU\(\sf6\(.*"
+prio:
+  regex ".*KU\(\sresize\(snd\(f5\(.*"
+prio:
+  regex ".*KU\(\sfst\(f5\(.*" | regex ".*KU\(\ssnd\(f5\(.*"
+prio:
+  regex ".*KU\(\sf5\(.*"
+prio:
+  regex ".*KU\(\s~passkey.*"
+prio:
+  regex ".*KU\(\sf4\(.*"
+prio:
+  regex ".*InS2D\(\s.*PairingDHKeyCheck.*"
+prio:
+  regex ".*InS2D\(\s.*PairingConfirm.*"
+prio:
+  regex ".*KU\(\sright\(rand2Num\(~passkey.*" | regex ".*KU\(\sleft\(rand2Num\(~passkey.*"
+prio:
+  regex ".*KU\(\srand2Num\(~passkey.*"
+deprio:
+  regex ".*KU\(\s~(?!passkey|Local|Peer).*"
+deprio:
+  regex ".*KU\(\s~Peer.*"
+
+// ! -------------------------------------------------
+tactic: tactic4secrecy_LTK
+presort: S
+prio:
+  regex ".*\(#vr.*=.*"
+prio:
+  regex ".*KU\(\ssenc.*SpecificKeys.*"
+prio:
+  regex ".*KU\(\s'g'.*~.*DHsk.*\*~.*DHsk.*\).*"
+prio:
+  regex "SecretLTK\(.*"
+prio:
+  regex "Session\(.*"
+prio:
+  regex ".*HostRevOOBData.*"
+prio:
+  regex ".*HostState.*"
+prio:
+  regex ".*InS2D\(\s'OOB'.*"
+prio:
+  regex ".*InS2D\(\s<'IO'.*"
+prio:
+  regex ".*\(#vr.*(?!=).*"
+prio:
+  regex ".*KU\(\s~Local.*"
+prio:
+  regex ".*KU\(\sf6\(.*"
+prio:
+  regex ".*KU\(\sresize\(snd\(f5\(.*"
+prio:
+  regex ".*KU\(\sfst\(f5\(.*" | regex ".*KU\(\ssnd\(f5\(.*"
+prio:
+  regex ".*KU\(\sf5\(.*"
+prio:
+  regex ".*KU\(\s~passkey.*"
+prio:
+  regex ".*KU\(\sf4\(.*"
+prio:
+  regex ".*InS2D\(\s.*PairingDHKeyCheck.*"
+prio:
+  regex ".*InS2D\(\s.*PairingConfirm.*"
+prio:
+  regex ".*KU\(\sright\(rand2Num\(~passkey.*" | regex ".*KU\(\sleft\(rand2Num\(~passkey.*"
+prio:
+  regex ".*KU\(\srand2Num\(~passkey.*"
+deprio:
+  regex ".*KU\(\s~(?!passkey|Local|Peer).*"
+deprio:
+  regex ".*KU\(\s~Peer.*"
+
+// ! -------------------------------------------------
+tactic: tactic4secrecy_SpecificKeys
+presort: S
+prio:
+  regex ".*\(#vr.*=.*"
+prio:
+  regex ".*KU\(\ssenc.*SpecificKeys.*"
+prio:
+  regex ".*KU\(\ssenc.*LL_START_ENC_RSP.*"
+prio:
+  regex ".*KU\(\s'g'.*~.*DHsk.*\*~.*DHsk.*\).*"
+prio:
+  regex "SecretSpecificKeys\(.*"
+prio:
+  regex "Session\(.*"
+prio:
+  regex ".*HostRevOOBData.*"
+prio:
+  regex ".*HostState.*"
+prio:
+  regex ".*InS2D\(\s<'HCI',\s'Command'.*" | regex ".*InS2D\(\s<'HCI',\s'Event'.*"
+prio:
+  regex ".*InS2D\(\s'OOB'.*"
+prio:
+  regex ".*InS2D\(\s<'IO'.*"
+prio:
+  regex ".*\(#vr.*(?!=).*"
+prio:
+  regex ".*KU\(\s~Local.*"
+prio:
+  regex ".*KU\(\sKDF\(.*"
+prio:
+  regex ".*KU\(\sf6\(.*"
+prio:
+  regex ".*KU\(\sresize\(snd\(f5\(.*"
+prio:
+  regex ".*KU\(\sfst\(f5\(.*" | regex ".*KU\(\ssnd\(f5\(.*"
+prio:
+  regex ".*KU\(\sf5\(.*"
+prio:
+  regex ".*KU\(\s~passkey.*"
+prio:
+  regex ".*KU\(\sf4\(.*"
+prio:
+  regex ".*InS2D\(\s.*SpecificKeys.*"
+prio:
+  regex ".*InS2D\(\s.*PairingDHKeyCheck.*"
+prio:
+  regex ".*InS2D\(\s.*PairingConfirm.*"
+prio:
+  regex ".*KU\(\sright\(rand2Num\(~passkey.*" | regex ".*KU\(\sleft\(rand2Num\(~passkey.*"
+prio:
+  regex ".*KU\(\srand2Num\(~passkey.*"
+prio:
+    regex ".*KU\(\srand2Key\(~LocalKeys.*"
+deprio:
+    regex ".*KU\(\srand2Key\(~PeerKeys.*"
+deprio:
+  regex ".*KU\(\s~(?!passkey|Local|Peer).*"
+deprio:
+  regex ".*KU\(\s~Peer.*"

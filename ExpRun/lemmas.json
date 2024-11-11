@@ -1,0 +1,63 @@
+{
+    "HypothesisLemmas":["type", "SecrecyOfDHPrivateKey", "RevOOBDataAlwaysRunOOBAS"],
+    "BaseLemmas": [
+        "ASConsistency",
+        "AuthIOCaps",
+        "AuthRandomNumber",
+        "AuthDHKey",
+        "AuthMacKey",
+        "AuthSK",
+        "secrecy_LTK",
+        "secrecy_SK",
+        "secrecy_SpecificKeys"
+    ],
+    "ImpliedRules": [
+        {
+            "impliedby": [
+                "*"
+            ],
+            "name": "*_UserNotReusePasskey"
+        },
+        {
+            "impliedby": [
+                "*"
+            ],
+            "name": "*_UserNotUseGuessablePasskey"
+        },
+        {
+            "impliedby": [
+                "*"
+            ],
+            "name": "*_UserNotConfusePENC"
+        },
+        {
+            "impliedby": [
+                "*_UserNotUseGuessablePasskey",
+                "*_UserNotConfusePENC"
+            ],
+            "name": "*_UserNotConfusePENC_UserNotUseGuessablePasskey"
+        },
+        {
+            "impliedby": [
+                "*_UserNotReusePasskey",
+                "*_UserNotUseGuessablePasskey"
+            ],
+            "name": "*_UserNotReusePasskey_UserNotUseGuessablePasskey"
+        },
+        {
+            "impliedby": [
+                "*_UserNotReusePasskey",
+                "*_UserNotConfusePENC"
+            ],
+            "name": "*_UserNotConfusePENC_UserNotReusePasskey"
+        },
+        {
+            "impliedby": [
+                "*_UserNotReusePasskey_UserNotUseGuessablePasskey",
+                "*_UserNotConfusePENC_UserNotUseGuessablePasskey",
+                "*_UserNotConfusePENC_UserNotReusePasskey"
+            ],
+            "name": "*_UserNotConfusePENC_UserNotReusePasskey_UserNotUseGuessablePasskey"
+        }
+    ]
+}

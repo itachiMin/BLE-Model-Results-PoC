@@ -1,0 +1,623 @@
+/*
+* ****************************************************************
+*                    Modeling Responder Host              
+* ****************************************************************
+*/
+  /*
+  # ****************************************************************
+  #                  Exchange OOB Data Start                  
+  # ****************************************************************
+  */
+    rule responderSendOOBData [color=#fb8b05]:
+      let
+        Role = 'Responder'
+        OOBCap = <True, OOBRev>
+        RRand = rand2Num(~Localr)
+        LocalDHpk = 'g' ^ ~LocalDHsk
+        CR = f4(LocalDHpk,LocalDHpk,RRand,'0')
+        oobData = <$LocalBTAddress, RRand, CR>
+      in
+      [
+        !HostStateLinkConnected('LinkConnected',<$HostID,Role,$pidR,$sid,LocalIOCap,OOBCap,LocalAuthReq,LocalMaxEncKeySize,$DevID,$LocalBTAddress,$PeerHost,$PeerBTAddress,$ChannelHandle,~LocalDHsk>),
+        Fr(~Localr)
+      ]
+      --[
+        OnlyOnceV(<'RSendOOBData',$pidR>),
+        LableProcess($pidR)
+      ]->
+      [
+        OutS2D('OOB', $HostID, $PeerHost, <$sid,oobData>),
+        HostStateSendOOBData('SendOOBData',$HostID,Role,$pidR,$ChannelHandle,RRand)
+      ]
+
+    rule responderRevOOBData [color=#fb8b05]:
+      let
+        Role = 'Responder'
+        OOBCap = <OOBSend, True>
+        oobData = <$PeerHost, rand2Num(~Peerr), CI>
+      in
+      [
+        !HostStateLinkConnected('LinkConnected',<$HostID,Role,$pidR,$sid,LocalIOCap,OOBCap,LocalAuthReq,LocalMaxEncKeySize,$DevID,$LocalBTAddress,$PeerHost,$PeerBTAddress,$ChannelHandle,~LocalDHsk>),
+        InS2D('OOB', $PeerHost, $HostID, <$sid,oobData>)
+      ]
+      --[
+        OnlyOnceV(<'RRevOOBData',$pidR>),
+        LableProcess($pidR),
+        HostRevOOBData($HostID,$pidR)
+      ]->
+      [
+        HostStateRevOOBData('RevOOBData',$HostID,Role,$pidR,$ChannelHandle,oobData),
+        HostStateRevOOBDataFlag('RevOOBDataFlag',$HostID,Role,$pidR,$ChannelHandle)
+      ]
+      
+  /*
+  # ****************************************************************
+  #                  Exchange OOB Data End                  
+  # ****************************************************************
+  */
+
+  /*
+  # ****************************************************************
+  #                Pairing Feature Exchange Start                  
+  # ****************************************************************
+  */
+    rule responderSendPairRsp [color=#fb8b05]:
+      let
+        Role = 'Responder'
+        req = <'PairingRequest', PeerIOCap, PeerAuthReq, PeerOOBFlag, PeerMaxEncKeySize>
+        LocalOOBFlag = False
+        rsp = <'PairingResponse', LocalIOCap, LocalAuthReq, LocalOOBFlag, LocalMaxEncKeySize>
+      in
+      [
+        !HostStateLinkConnected('LinkConnected',<$HostID,Role,$pidR,$sid,LocalIOCap,OOBCap,LocalAuthReq,LocalMaxEncKeySize,$DevID,$LocalBTAddress,$PeerHost,$PeerBTAddress,$ChannelHandle,~LocalDHsk>),
+        InS2D(<'HCI',<'ACL','Controller2Host'>>, $DevID, $HostID, <$ChannelHandle, req>)
+      ]
+      --[
+        OnlyOnceV(<'RSendPairingResponse',$ChannelHandle>),
+        HostSendReqFalseOOBFlag($pidR),
+        RHostSent($HostID,LocalIOCap,LocalAuthReq,LocalOOBFlag),
+        LableProcess($pidR)
+      ]->
+      [
+        OutS2D(<'HCI',<'ACL','Host2Controller'>>, $HostID, $DevID, <$ChannelHandle, rsp>),
+        HostStateWaitPeerPK('WaitPeerPK',<$HostID,Role,$pidR,LocalIOCap,LocalAuthReq,LocalMaxEncKeySize,$DevID,$LocalBTAddress,$PeerBTAddress,$ChannelHandle,LocalOOBFlag,PeerIOCap,PeerAuthReq,PeerMaxEncKeySize,PeerOOBFlag,~LocalDHsk>)
+      ]
+
+    rule responderSendPairRspWithOOBFlag [color=#fb8b05]:
+      let
+        Role = 'Responder'
+        req = <'PairingRequest', PeerIOCap, PeerAuthReq, PeerOOBFlag, PeerMaxEncKeySize>
+        LocalOOBFlag = True
+        rsp = <'PairingResponse', LocalIOCap, LocalAuthReq, LocalOOBFlag, LocalMaxEncKeySize>
+      in
+      [
+        !HostStateLinkConnected('LinkConnected',<$HostID,Role,$pidR,$sid,LocalIOCap,OOBCap,LocalAuthReq,LocalMaxEncKeySize,$DevID,$LocalBTAddress,$PeerHost,$PeerBTAddress,$ChannelHandle,~LocalDHsk>),
+        HostStateRevOOBDataFlag('RevOOBDataFlag',$HostID,Role,$pidR,$ChannelHandle),
+        InS2D(<'HCI',<'ACL','Controller2Host'>>, $DevID, $HostID, <$ChannelHandle, req>)
+      ]
+      --[
+        OnlyOnceV(<'RSendPairingResponse',$ChannelHandle>),
+        RHostSent($HostID,LocalIOCap,LocalAuthReq,LocalOOBFlag),
+        HostSendRspTrueOOBFlag($pidR),
+        LableProcess($pidR)
+      ]->
+      [
+        OutS2D(<'HCI',<'ACL','Host2Controller'>>, $HostID, $DevID, <$ChannelHandle, rsp>),
+        HostStateWaitPeerPK('WaitPeerPK',<$HostID,Role,$pidR,LocalIOCap,LocalAuthReq,LocalMaxEncKeySize,$DevID,$LocalBTAddress,$PeerBTAddress,$ChannelHandle,LocalOOBFlag,PeerIOCap,PeerAuthReq,PeerMaxEncKeySize,PeerOOBFlag,~LocalDHsk>)
+      ]
+  
+  /*
+  # ****************************************************************
+  #                Pairing Feature Exchange End                  
+  # ****************************************************************
+  */
+
+  /*
+  # ****************************************************************
+  #                Public Key Exchange Start                  
+  # ****************************************************************
+  */
+    rule responderExchPK [color=#fb8b05]:
+      let
+        Role = 'Responder'
+        Peerpkmsg = <'PairingPublicKey', PeerDHpk>
+        LocalDHpk = 'g' ^ ~LocalDHsk
+        Localpkmsg = <'PairingPublicKey', LocalDHpk>
+        SelectedAS = selectAssM(PeerOOBFlag,LocalOOBFlag,PeerAuthReq,LocalAuthReq,PeerIOCap,LocalIOCap)
+      in
+      [
+        HostStateWaitPeerPK('WaitPeerPK',<$HostID,Role,$pidR,LocalIOCap,LocalAuthReq,LocalMaxEncKeySize,$DevID,$LocalBTAddress,$PeerBTAddress,$ChannelHandle,LocalOOBFlag,PeerIOCap,PeerAuthReq,PeerMaxEncKeySize,PeerOOBFlag,~LocalDHsk>),
+        InS2D(<'HCI', <'ACL','Controller2Host'>>, $DevID, $HostID, <$ChannelHandle, Peerpkmsg>)
+      ]
+      --[
+        SelectAS($HostID,$pidR,SelectedAS),
+        SelectASHandle($HostID,Role,$ChannelHandle,SelectedAS),
+        Neq(PeerDHpk,DH_neutral), // We do not consider small group attack
+        Neq(PeerDHpk,'g'^~LocalDHsk), // Verify the peer DHpk to prevent reflection attack
+        LableProcess($pidR)
+      ]->
+      [
+        OutS2D(<'HCI',<'ACL','Host2Controller'>>, $HostID, $DevID, <$ChannelHandle, Localpkmsg>),
+        HostStateExchedPK('ExchedPK',<$HostID,Role,$pidR,LocalIOCap,LocalAuthReq,LocalMaxEncKeySize,$DevID,$LocalBTAddress,$PeerBTAddress,$ChannelHandle,LocalOOBFlag,PeerIOCap,PeerAuthReq,PeerMaxEncKeySize,PeerOOBFlag,~LocalDHsk,PeerDHpk,SelectedAS>)
+      ]
+  /*
+  # ****************************************************************
+  #                Public Key Exchange End                  
+  # ****************************************************************
+  */
+
+  /*
+  # ****************************************************************
+  #                  Authentication Phase 1 Start                  
+  # ****************************************************************
+  */
+    dnl ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    divert(-1)
+    changequote(<!,!>)
+    define(Generate_R_NCJW_SendCfm,
+    <!rule responder$1SendCfm [color=#fb8b05]:
+      let
+        Role = 'Responder'
+        SelectedAS = $1
+        LRand = '0'
+        RRand = '0'
+        LocalDHpk = 'g' ^ ~LocalDHsk
+        LocalConfirm = f4(LocalDHpk, PeerDHpk, ~LocalRandom, RRand)
+        cfmMsg = <'PairingConfirm',LocalConfirm>
+      in
+      [
+        HostStateExchedPK('ExchedPK',<$HostID,Role,$pidR,LocalIOCap,LocalAuthReq,LocalMaxEncKeySize,$DevID,$LocalBTAddress,$PeerBTAddress,$ChannelHandle,LocalOOBFlag,PeerIOCap,PeerAuthReq,PeerMaxEncKeySize,PeerOOBFlag,~LocalDHsk,PeerDHpk,SelectedAS>),
+        Fr(~LocalRandom)
+      ]
+      --[
+        LableProcess($pidR),
+        Running($LocalBTAddress,$PeerBTAddress,<'RandomNumber',~LocalRandom>)
+      ]->
+      [
+        OutS2D(<'HCI',<'ACL','Host2Controller'>>, $HostID, $DevID, <$ChannelHandle, cfmMsg>),
+        HostStateWaitRandom('WaitRandom',<$HostID,Role,$pidR,LocalIOCap,LocalAuthReq,LocalMaxEncKeySize,$DevID,$LocalBTAddress,$PeerBTAddress,$ChannelHandle,LocalOOBFlag,PeerIOCap,PeerAuthReq,PeerMaxEncKeySize,PeerOOBFlag,~LocalDHsk,PeerDHpk,SelectedAS,LRand,~LocalRandom,RRand>)
+      ]!>)
+    changequote
+    divert(0)dnl
+    dnl ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+    Generate_R_NCJW_SendCfm(NC)
+    Generate_R_NCJW_SendCfm(JW)
+    
+    rule responderNCExchRandom [color=#fb8b05]:
+      let
+        Role = 'Responder'
+        SelectedAS = NC
+        peerRandMsg = <'PairingRandom',~PeerRandom>
+        localRandMsg = <'PairingRandom',~LocalRandom>
+        LocalDHpk = 'g' ^ ~LocalDHsk
+        VR = g2(PeerDHpk, LocalDHpk, ~PeerRandom, ~LocalRandom)
+      in
+      [
+        HostStateWaitRandom('WaitRandom',<$HostID,Role,$pidR,LocalIOCap,LocalAuthReq,LocalMaxEncKeySize,$DevID,$LocalBTAddress,$PeerBTAddress,$ChannelHandle,LocalOOBFlag,PeerIOCap,PeerAuthReq,PeerMaxEncKeySize,PeerOOBFlag,~LocalDHsk,PeerDHpk,SelectedAS,LRand,~LocalRandom,RRand>),
+        InS2D(<'HCI', <'ACL','Controller2Host'>>, $DevID, $HostID, <$ChannelHandle, peerRandMsg>)
+      ]
+      --[
+        SRC_OUT_FACT_HOST_DISPLY_NUMBER(<'IO', 'DisplayWithYN'>, $HostID, $User, <$pidR,VR>),
+        SRC_OUT_FACT_DEVICE_IO(<'IO', 'DisplayWithYN'>, $HostID, $User, <$pidR,VR>),
+        LableProcess($pidR)
+      ]->
+      [
+        OutS2D(<'HCI',<'ACL','Host2Controller'>>, $HostID, $DevID, <$ChannelHandle, localRandMsg>),
+        OutS2D(<'IO', 'DisplayWithYN'>, $HostID, $User, <$pidR,VR>),
+        HostStateWaitUserCfm('WaitUserCfm',<$HostID,Role,$pidR,LocalIOCap,LocalAuthReq,LocalMaxEncKeySize,$DevID,$LocalBTAddress,$PeerBTAddress,$ChannelHandle,LocalOOBFlag,PeerIOCap,PeerAuthReq,PeerMaxEncKeySize,PeerOOBFlag,~LocalDHsk,PeerDHpk,SelectedAS,LRand,~LocalRandom,RRand,~PeerRandom>)
+      ]
+    
+    rule responderUserCfm [color=#fb8b05]:
+      let
+        Role = 'Responder'
+        SelectedAS = NC
+      in
+      [
+        HostStateWaitUserCfm('WaitUserCfm',<$HostID,Role,$pidR,LocalIOCap,LocalAuthReq,LocalMaxEncKeySize,$DevID,$LocalBTAddress,$PeerBTAddress,$ChannelHandle,LocalOOBFlag,PeerIOCap,PeerAuthReq,PeerMaxEncKeySize,PeerOOBFlag,~LocalDHsk,PeerDHpk,SelectedAS,LRand,~LocalRandom,RRand,~PeerRandom>),
+        InS2D(<'IO', 'PushButton'>, $User, $HostID, <$pidR,'Y'>)
+      ]
+      --[
+        LableProcess($pidR)
+      ]->
+      [
+        HostStateAuth1Finished('Auth1Finished',<$HostID,Role,$pidR,LocalIOCap,LocalAuthReq,LocalMaxEncKeySize,$DevID,$LocalBTAddress,$PeerBTAddress,$ChannelHandle,LocalOOBFlag,PeerIOCap,PeerAuthReq,PeerMaxEncKeySize,PeerOOBFlag,~LocalDHsk,PeerDHpk,SelectedAS,LRand,~LocalRandom,RRand,~PeerRandom>)
+      ]
+    
+    rule responderJWExchRandom [color=#fb8b05]:
+      let
+        Role = 'Responder'
+        SelectedAS = JW
+        peerRandMsg = <'PairingRandom',~PeerRandom>
+        localRandMsg = <'PairingRandom',~LocalRandom>
+      in
+      [
+        HostStateWaitRandom('WaitRandom',<$HostID,Role,$pidR,LocalIOCap,LocalAuthReq,LocalMaxEncKeySize,$DevID,$LocalBTAddress,$PeerBTAddress,$ChannelHandle,LocalOOBFlag,PeerIOCap,PeerAuthReq,PeerMaxEncKeySize,PeerOOBFlag,~LocalDHsk,PeerDHpk,SelectedAS,LRand,~LocalRandom,RRand>),
+        InS2D(<'HCI', <'ACL','Controller2Host'>>, $DevID, $HostID, <$ChannelHandle, peerRandMsg>)
+      ]
+      --[
+        LableProcess($pidR)
+      ]->
+      [
+        OutS2D(<'HCI',<'ACL','Host2Controller'>>, $HostID, $DevID, <$ChannelHandle, localRandMsg>),
+        HostStateAuth1Finished('Auth1Finished',<$HostID,Role,$pidR,LocalIOCap,LocalAuthReq,LocalMaxEncKeySize,$DevID,$LocalBTAddress,$PeerBTAddress,$ChannelHandle,LocalOOBFlag,PeerIOCap,PeerAuthReq,PeerMaxEncKeySize,PeerOOBFlag,~LocalDHsk,PeerDHpk,SelectedAS,LRand,~LocalRandom,RRand,~PeerRandom>)
+      ]
+    
+    rule responderDispNum [color=#fb8b05]:
+      let
+        Role = 'Responder'
+        SelectedAS = PEID
+        LRand = rand2Num(~passkey)
+        RRand = rand2Num(~passkey)
+      in
+      [
+        HostStateExchedPK('ExchedPK',<$HostID,Role,$pidR,LocalIOCap,LocalAuthReq,LocalMaxEncKeySize,$DevID,$LocalBTAddress,$PeerBTAddress,$ChannelHandle,LocalOOBFlag,PeerIOCap,PeerAuthReq,PeerMaxEncKeySize,PeerOOBFlag,~LocalDHsk,PeerDHpk,SelectedAS>),
+        Fr(~passkey)
+      ]
+      --[
+        SRC_OUT_FACT_HOST_DISPLY_NUMBER(<'IO', 'Display'>, $HostID, $User, <$pidR,rand2Num(~passkey)>),
+        SRC_OUT_FACT_DEVICE_IO(<'IO', 'Display'>, $HostID, $User, <$pidR,rand2Num(~passkey)>),
+        LableProcess($pidR)
+      ]->
+      [
+        OutS2D(<'IO', 'Display'>, $HostID, $User, <$pidR,rand2Num(~passkey)>),
+        HostStateWaitNotify('WaitNotify',<$HostID,Role,$pidR,LocalIOCap,LocalAuthReq,LocalMaxEncKeySize,$DevID,$LocalBTAddress,$PeerBTAddress,$ChannelHandle,LocalOOBFlag,PeerIOCap,PeerAuthReq,PeerMaxEncKeySize,PeerOOBFlag,~LocalDHsk,PeerDHpk,SelectedAS,LRand,RRand>)
+      ]
+    
+    dnl ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    divert(-1)
+    changequote(<!,!>)
+    define(Generate_R_PEDIPEII_AskInput,
+    <!rule responder$1AskInput [color=#fb8b05]:
+      let
+        Role = 'Responder'
+        SelectedAS = $1
+      in
+      [
+        HostStateExchedPK('ExchedPK',<$HostID,Role,$pidR,LocalIOCap,LocalAuthReq,LocalMaxEncKeySize,$DevID,$LocalBTAddress,$PeerBTAddress,$ChannelHandle,LocalOOBFlag,PeerIOCap,PeerAuthReq,PeerMaxEncKeySize,PeerOOBFlag,~LocalDHsk,PeerDHpk,SelectedAS>)
+      ]
+      --[
+        SRC_OUT_FACT_DEVICE_IO(<'IO','AskForInput'>, $HostID, $User, <$pidR,'InputField'>),
+        LableProcess($pidR)
+      ]->
+      [
+        OutS2D(<'IO','AskForInput'>, $HostID, $User, <$pidR,'InputField'>),
+        HostStateWaitInput('WaitInput',<$HostID,Role,$pidR,LocalIOCap,LocalAuthReq,LocalMaxEncKeySize,$DevID,$LocalBTAddress,$PeerBTAddress,$ChannelHandle,LocalOOBFlag,PeerIOCap,PeerAuthReq,PeerMaxEncKeySize,PeerOOBFlag,~LocalDHsk,PeerDHpk,SelectedAS>)
+      ]!>)
+    changequote
+    divert(0)dnl
+    dnl ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    
+    Generate_R_PEDIPEII_AskInput(PEDI)
+    Generate_R_PEDIPEII_AskInput(PEII)
+    
+    rule responderPEDExchCfmfst [color=#fb8b05]:
+      let
+        Role = 'Responder'
+        peerCfmMsg = <'PairingConfirm', PeerConfirm>
+        LocalDHpk = 'g' ^ ~LocalDHsk
+        LocalConfirm = f4(LocalDHpk, PeerDHpk, ~LocalRandom, left(RRand))
+        localCfmMsg = <'PairingConfirm', LocalConfirm>
+      in
+      [
+        HostStateWaitNotify('WaitNotify',<$HostID,Role,$pidR,LocalIOCap,LocalAuthReq,LocalMaxEncKeySize,$DevID,$LocalBTAddress,$PeerBTAddress,$ChannelHandle,LocalOOBFlag,PeerIOCap,PeerAuthReq,PeerMaxEncKeySize,PeerOOBFlag,~LocalDHsk,PeerDHpk,SelectedAS,LRand,RRand>),
+        InS2D(<'HCI', <'ACL','Controller2Host'>>, $DevID, $HostID, <$ChannelHandle, 'PairingKeypressNotification'>),
+        InS2D(<'HCI', <'ACL','Controller2Host'>>, $DevID, $HostID, <$ChannelHandle, peerCfmMsg>),
+        Fr(~LocalRandom)
+      ]
+      --[
+        LableProcess($pidR)
+      ]->
+      [
+        OutS2D(<'HCI',<'ACL','Host2Controller'>>, $HostID, $DevID, <$ChannelHandle, localCfmMsg>),
+        HostStateWaitRandomPEFst('WaitRandomPEFst',<$HostID,Role,$pidR,LocalIOCap,LocalAuthReq,LocalMaxEncKeySize,$DevID,$LocalBTAddress,$PeerBTAddress,$ChannelHandle,LocalOOBFlag,PeerIOCap,PeerAuthReq,PeerMaxEncKeySize,PeerOOBFlag,~LocalDHsk,PeerDHpk,SelectedAS,LRand,~LocalRandom,RRand,PeerConfirm>)
+      ]
+    
+    rule responderPEIExchCfmfst [color=#fb8b05]:
+      let
+        Role = 'Responder'
+        LRand = passkey
+        RRand = passkey
+        peerCfmMsg = <'PairingConfirm', PeerConfirm>
+        LocalDHpk = 'g' ^ ~LocalDHsk
+        LocalConfirm = f4(LocalDHpk, PeerDHpk, ~LocalRandom, left(RRand))
+        localCfmMsg = <'PairingConfirm', LocalConfirm>
+      in
+      [
+        HostStateWaitInput('WaitInput',<$HostID,Role,$pidR,LocalIOCap,LocalAuthReq,LocalMaxEncKeySize,$DevID,$LocalBTAddress,$PeerBTAddress,$ChannelHandle,LocalOOBFlag,PeerIOCap,PeerAuthReq,PeerMaxEncKeySize,PeerOOBFlag,~LocalDHsk,PeerDHpk,SelectedAS>),
+        InS2D(<'IO', 'Input'>, $User, $HostID, <$pidR,passkey>),
+        InS2D(<'HCI', <'ACL','Controller2Host'>>, $DevID, $HostID, <$ChannelHandle, peerCfmMsg>),
+        Fr(~LocalRandom)
+      ]
+      --[
+        SRC_IN_FACT_HOST_REV_PASSKEY(<'IO', 'Input'>, $User, $HostID, <$pidR,passkey>),
+        LableProcess($pidR)
+      ]->
+      [
+        OutS2D(<'HCI',<'ACL','Host2Controller'>>, $HostID, $DevID, <$ChannelHandle, localCfmMsg>),
+        HostStateWaitRandomPEFst('WaitRandomPEFst',<$HostID,Role,$pidR,LocalIOCap,LocalAuthReq,LocalMaxEncKeySize,$DevID,$LocalBTAddress,$PeerBTAddress,$ChannelHandle,LocalOOBFlag,PeerIOCap,PeerAuthReq,PeerMaxEncKeySize,PeerOOBFlag,~LocalDHsk,PeerDHpk,SelectedAS,LRand,~LocalRandom,RRand,PeerConfirm>)
+      ]
+    
+    rule responderPEExchRandomfst [color=#fb8b05]:
+      let
+        Role = 'Responder'
+        peerRandomMsg = <'PairingRandom', ~PeerRandom>
+        LocalDHpk = 'g' ^ ~LocalDHsk
+        PeerConfirm = f4(PeerDHpk, LocalDHpk, ~PeerRandom, left(RRand))
+        localRandomMsg = <'PairingRandom', ~LocalRandom>
+      in
+      [
+        HostStateWaitRandomPEFst('WaitRandomPEFst',<$HostID,Role,$pidR,LocalIOCap,LocalAuthReq,LocalMaxEncKeySize,$DevID,$LocalBTAddress,$PeerBTAddress,$ChannelHandle,LocalOOBFlag,PeerIOCap,PeerAuthReq,PeerMaxEncKeySize,PeerOOBFlag,~LocalDHsk,PeerDHpk,SelectedAS,LRand,~LocalRandom,RRand,PeerConfirm>),
+        InS2D(<'HCI', <'ACL','Controller2Host'>>, $DevID, $HostID, <$ChannelHandle, peerRandomMsg>)
+      ]
+      --[
+        LableProcess($pidR)
+      ]->
+      [
+        OutS2D(<'HCI',<'ACL','Host2Controller'>>, $HostID, $DevID, <$ChannelHandle, localRandomMsg>),
+        HostStatePEFinishFst('HostStatePEFinishFst',<$HostID,Role,$pidR,LocalIOCap,LocalAuthReq,LocalMaxEncKeySize,$DevID,$LocalBTAddress,$PeerBTAddress,$ChannelHandle,LocalOOBFlag,PeerIOCap,PeerAuthReq,PeerMaxEncKeySize,PeerOOBFlag,~LocalDHsk,PeerDHpk,SelectedAS,LRand,RRand,~PeerRandom>)
+      ]
+
+    rule responderPEExchCfmSnd [color=#fb8b05]:
+      let
+        Role = 'Responder'
+        peerCfmMsg = <'PairingConfirm', PeerConfirm>
+        LocalDHpk = 'g' ^ ~LocalDHsk
+        LocalConfirm = f4(LocalDHpk, PeerDHpk, ~LocalRandom, right(RRand))
+        localCfmMsg = <'PairingConfirm', LocalConfirm>
+      in
+      [
+        HostStatePEFinishFst('HostStatePEFinishFst',<$HostID,Role,$pidR,LocalIOCap,LocalAuthReq,LocalMaxEncKeySize,$DevID,$LocalBTAddress,$PeerBTAddress,$ChannelHandle,LocalOOBFlag,PeerIOCap,PeerAuthReq,PeerMaxEncKeySize,PeerOOBFlag,~LocalDHsk,PeerDHpk,SelectedAS,LRand,RRand,~PeerRandom>),
+        InS2D(<'HCI', <'ACL','Controller2Host'>>, $DevID, $HostID, <$ChannelHandle, peerCfmMsg>),
+        Fr(~LocalRandom)
+      ]
+      --[
+        LableProcess($pidR),
+        Running($LocalBTAddress,$PeerBTAddress,<'RandomNumber',~LocalRandom>)
+      ]->
+      [
+        OutS2D(<'HCI',<'ACL','Host2Controller'>>, $HostID, $DevID, <$ChannelHandle, localCfmMsg>),
+        HostStateWaitRandomPESnd('WaitRandomPESnd',<$HostID,Role,$pidR,LocalIOCap,LocalAuthReq,LocalMaxEncKeySize,$DevID,$LocalBTAddress,$PeerBTAddress,$ChannelHandle,LocalOOBFlag,PeerIOCap,PeerAuthReq,PeerMaxEncKeySize,PeerOOBFlag,~LocalDHsk,PeerDHpk,SelectedAS,LRand,~LocalRandom,RRand,PeerConfirm>)
+      ]
+
+    rule responderPEExchRandomSnd [color=#fb8b05]:
+      let
+        Role = 'Responder'
+        peerRandomMsg = <'PairingRandom', ~PeerRandom>
+        LocalDHpk = 'g' ^ ~LocalDHsk
+        PeerConfirm = f4(PeerDHpk, LocalDHpk, ~PeerRandom, right(RRand))
+        localRandomMsg = <'PairingRandom', ~LocalRandom>
+      in
+      [
+        HostStateWaitRandomPESnd('WaitRandomPESnd',<$HostID,Role,$pidR,LocalIOCap,LocalAuthReq,LocalMaxEncKeySize,$DevID,$LocalBTAddress,$PeerBTAddress,$ChannelHandle,LocalOOBFlag,PeerIOCap,PeerAuthReq,PeerMaxEncKeySize,PeerOOBFlag,~LocalDHsk,PeerDHpk,SelectedAS,LRand,~LocalRandom,RRand,PeerConfirm>),
+        InS2D(<'HCI', <'ACL','Controller2Host'>>, $DevID, $HostID, <$ChannelHandle, peerRandomMsg>)
+      ]
+      --[
+        LableProcess($pidR)
+      ]->
+      [
+        OutS2D(<'HCI',<'ACL','Host2Controller'>>, $HostID, $DevID, <$ChannelHandle, localRandomMsg>),
+        HostStateAuth1Finished('Auth1Finished',<$HostID,Role,$pidR,LocalIOCap,LocalAuthReq,LocalMaxEncKeySize,$DevID,$LocalBTAddress,$PeerBTAddress,$ChannelHandle,LocalOOBFlag,PeerIOCap,PeerAuthReq,PeerMaxEncKeySize,PeerOOBFlag,~LocalDHsk,PeerDHpk,SelectedAS,LRand,~LocalRandom,RRand,~PeerRandom>)
+      ]
+
+
+    // # OOB 
+    // Initiator has sent OOB data to Responder.
+    rule responderOOBI2RExchRandom [color=#fb8b05]:
+      let
+        Role = 'Responder'
+        SelectAS = OOBAS
+        LocalOOBFlag = True
+        PeerOOBFlag = False
+        oobData = <$PeerHost, LRand, f4(PeerDHpk,PeerDHpk,LRand,'0')>
+        RRand = '0'
+        peerRandMsg = <'PairingRandom',~PeerRandom>
+        localRandMsg = <'PairingRandom',~LocalRandom>
+      in
+      [
+        HostStateExchedPK('ExchedPK',<$HostID,Role,$pidR,LocalIOCap,LocalAuthReq,LocalMaxEncKeySize,$DevID,$LocalBTAddress,$PeerBTAddress,$ChannelHandle,LocalOOBFlag,PeerIOCap,PeerAuthReq,PeerMaxEncKeySize,PeerOOBFlag,~LocalDHsk,PeerDHpk,SelectedAS>),
+        HostStateRevOOBData('RevOOBData',$HostID,Role,$pidR,$ChannelHandle,oobData),
+        InS2D(<'HCI', <'ACL','Controller2Host'>>, $DevID, $HostID, <$ChannelHandle, peerRandMsg>),
+        Fr(~LocalRandom)
+      ]
+      --[
+        LableProcess($pidR),
+        HostHaveRevedOOBData($pidR),
+        Running($LocalBTAddress,$PeerBTAddress,<'RandomNumber',~LocalRandom>)
+      ]->
+      [
+        HostStateAuth1Finished('Auth1Finished',<$HostID,Role,$pidR,LocalIOCap,LocalAuthReq,LocalMaxEncKeySize,$DevID,$LocalBTAddress,$PeerBTAddress,$ChannelHandle,LocalOOBFlag,PeerIOCap,PeerAuthReq,PeerMaxEncKeySize,PeerOOBFlag,~LocalDHsk,PeerDHpk,SelectedAS,LRand,~LocalRandom,RRand,~PeerRandom>),
+        OutS2D(<'HCI',<'ACL','Host2Controller'>>, $HostID, $DevID, <$ChannelHandle, localRandMsg>)
+      ]
+    
+    // Responder has sent OOB data to Initiator.
+    rule responderOOBR2IExchRandom [color=#fb8b05]:
+      let
+        Role = 'Responder'
+        SelectAS = OOBAS
+        LocalOOBFlag = False
+        PeerOOBFlag = True
+        LRand = '0'
+        peerRandMsg = <'PairingRandom',~PeerRandom>
+        localRandMsg = <'PairingRandom',~LocalRandom>
+      in
+      [
+        HostStateExchedPK('ExchedPK',<$HostID,Role,$pidR,LocalIOCap,LocalAuthReq,LocalMaxEncKeySize,$DevID,$LocalBTAddress,$PeerBTAddress,$ChannelHandle,LocalOOBFlag,PeerIOCap,PeerAuthReq,PeerMaxEncKeySize,PeerOOBFlag,~LocalDHsk,PeerDHpk,SelectedAS>),
+        HostStateSendOOBData('SendOOBData',$HostID,Role,$pidR,$ChannelHandle,RRand),
+        InS2D(<'HCI', <'ACL','Controller2Host'>>, $DevID, $HostID, <$ChannelHandle, peerRandMsg>),
+        Fr(~LocalRandom)
+      ]
+      --[
+        LableProcess($pidR),
+        Running($LocalBTAddress,$PeerBTAddress,<'RandomNumber',~LocalRandom>)
+      ]->
+      [
+        HostStateAuth1Finished('Auth1Finished',<$HostID,Role,$pidR,LocalIOCap,LocalAuthReq,LocalMaxEncKeySize,$DevID,$LocalBTAddress,$PeerBTAddress,$ChannelHandle,LocalOOBFlag,PeerIOCap,PeerAuthReq,PeerMaxEncKeySize,PeerOOBFlag,~LocalDHsk,PeerDHpk,SelectedAS,LRand,~LocalRandom,RRand,~PeerRandom>),
+        OutS2D(<'HCI',<'ACL','Host2Controller'>>, $HostID, $DevID, <$ChannelHandle, localRandMsg>)
+      ]
+
+    // Initiator has sent OOB data to Responder.
+    // Responder has sent OOB data to Initiator.
+    rule responderOOBIRExchRandom [color=#fb8b05]:
+      let
+        Role = 'Responder'
+        SelectAS = OOBAS
+        LocalOOBFlag = True
+        PeerOOBFlag = True
+        oobData = <$PeerHost, LRand, f4(PeerDHpk,PeerDHpk,LRand,'0')>
+        peerRandMsg = <'PairingRandom',~PeerRandom>
+        localRandMsg = <'PairingRandom',~LocalRandom>
+      in
+      [
+        HostStateExchedPK('ExchedPK',<$HostID,Role,$pidR,LocalIOCap,LocalAuthReq,LocalMaxEncKeySize,$DevID,$LocalBTAddress,$PeerBTAddress,$ChannelHandle,LocalOOBFlag,PeerIOCap,PeerAuthReq,PeerMaxEncKeySize,PeerOOBFlag,~LocalDHsk,PeerDHpk,SelectedAS>),
+        HostStateSendOOBData('SendOOBData',$HostID,Role,$pidR,$ChannelHandle,RRand),
+        HostStateRevOOBData('RevOOBData',$HostID,Role,$pidR,$ChannelHandle,oobData),
+        InS2D(<'HCI', <'ACL','Controller2Host'>>, $DevID, $HostID, <$ChannelHandle, peerRandMsg>),
+        Fr(~LocalRandom)
+      ]
+      --[
+        LableProcess($pidR),
+        HostHaveRevedOOBData($pidR),
+        Running($LocalBTAddress,$PeerBTAddress,<'RandomNumber',~LocalRandom>)
+      ]->
+      [
+        HostStateAuth1Finished('Auth1Finished',<$HostID,Role,$pidR,LocalIOCap,LocalAuthReq,LocalMaxEncKeySize,$DevID,$LocalBTAddress,$PeerBTAddress,$ChannelHandle,LocalOOBFlag,PeerIOCap,PeerAuthReq,PeerMaxEncKeySize,PeerOOBFlag,~LocalDHsk,PeerDHpk,SelectedAS,LRand,~LocalRandom,RRand,~PeerRandom>),
+        OutS2D(<'HCI',<'ACL','Host2Controller'>>, $HostID, $DevID, <$ChannelHandle, localRandMsg>)
+      ]
+    
+  /*
+  # ****************************************************************
+  #                  Authentication Phase 1 End                  
+  # ****************************************************************
+  # ****************************************************************
+  #                  Authentication Phase 2 Start                  
+  # ****************************************************************
+  */
+    rule responderExchCommitment [color=#fb8b05]:
+      let
+        Role = 'Responder'
+        DHKey = PeerDHpk ^ ~LocalDHsk
+        MacKey = fst(f5(DHKey, ~PeerRandom, ~LocalRandom, $PeerBTAddress, $LocalBTAddress))
+        LTK = resize(snd(f5(DHKey, ~PeerRandom, ~LocalRandom, $PeerBTAddress, $LocalBTAddress)), PeerMaxEncKeySize)
+        EI = f6(MacKey, ~PeerRandom, ~LocalRandom, RRand, PeerIOCap, $PeerBTAddress, $LocalBTAddress)
+        ER = f6(MacKey, ~LocalRandom, ~PeerRandom, LRand, LocalIOCap, $LocalBTAddress, $PeerBTAddress)
+        peerCommitment = <'PairingDHKeyCheck',EI>
+        localCommitment = <'PairingDHKeyCheck',ER>
+      in
+      [
+        HostStateAuth1Finished('Auth1Finished',<$HostID,Role,$pidR,LocalIOCap,LocalAuthReq,LocalMaxEncKeySize,$DevID,$LocalBTAddress,$PeerBTAddress,$ChannelHandle,LocalOOBFlag,PeerIOCap,PeerAuthReq,PeerMaxEncKeySize,PeerOOBFlag,~LocalDHsk,PeerDHpk,SelectedAS,LRand,~LocalRandom,RRand,~PeerRandom>),
+        InS2D(<'HCI', <'ACL','Controller2Host'>>, $DevID, $HostID, <$ChannelHandle, peerCommitment>)
+      ]
+      --[
+        SecretLTK($HostID,$pidR,LTK),
+        LableProcess($pidR),
+        Running($LocalBTAddress,$PeerBTAddress,<'DHKey',DHKey>),
+        Running($LocalBTAddress,$PeerBTAddress,<'MacKey',MacKey>),
+        Running($LocalBTAddress,$PeerBTAddress,<'LTK',LTK>),
+        Commit($LocalBTAddress,$PeerBTAddress,<'IOCaps',PeerIOCap>),
+        Commit($LocalBTAddress,$PeerBTAddress,<'RandomNumber',~PeerRandom>),
+        Commit($LocalBTAddress,$PeerBTAddress,<'DHKey',DHKey>),
+        Commit($LocalBTAddress,$PeerBTAddress,<'MacKey',MacKey>),
+        Commit($LocalBTAddress,$PeerBTAddress,<'LTK',LTK>),
+        RFinishedAuth2($HostID,$pidR,SelectedAS),
+        HostFinishedAuth2($HostID,$pidR,SelectedAS),
+        HostFinishedAuth2Handle($HostID,$ChannelHandle,SelectedAS),
+        Session($HostID,$pidR,SelectedAS),
+      ]->
+      [
+        OutS2D(<'HCI',<'ACL','Host2Controller'>>, $HostID, $DevID, <$ChannelHandle, localCommitment>),
+        HostStateAuth2Finished('Auth2Finished',<$HostID,Role,$pidR,LocalIOCap,LocalAuthReq,LocalMaxEncKeySize,$DevID,$LocalBTAddress,$PeerBTAddress,$ChannelHandle,LocalOOBFlag,PeerIOCap,PeerAuthReq,PeerMaxEncKeySize,PeerOOBFlag,~LocalDHsk,PeerDHpk,SelectedAS,LRand,~LocalRandom,RRand,~PeerRandom,MacKey,LTK>)
+      ]
+    
+  /*
+  # ****************************************************************
+  #                  Authentication Phase 2 End                  
+  # ****************************************************************
+  # ****************************************************************
+  #                    Link Encryption Start               
+  # ****************************************************************
+  */
+    rule responderRspLTK [color=#fb8b05]:
+      let
+        Role = 'Responder'
+        event = <'HCI_LE_Long_Term_Key_Request',$ChannelHandle>
+        command = <'HCI_LE_Long_Term_Key_Request_Reply',$ChannelHandle,LTK>
+      in
+      [
+        HostStateAuth2Finished('Auth2Finished',<$HostID,Role,$pidR,LocalIOCap,LocalAuthReq,LocalMaxEncKeySize,$DevID,$LocalBTAddress,$PeerBTAddress,$ChannelHandle,LocalOOBFlag,PeerIOCap,PeerAuthReq,PeerMaxEncKeySize,PeerOOBFlag,~LocalDHsk,PeerDHpk,SelectedAS,LRand,~LocalRandom,RRand,~PeerRandom,MacKey,LTK>),
+        InS2D(<'HCI', 'Event'>, $DevID, $HostID, event)
+      ]
+      --[
+        LableProcess($pidR)
+      ]->
+      [
+        OutS2D(<'HCI','Command'>, $HostID, $DevID, command),
+        HostStateRWaitEncExchEvent('RWaitEncExchEvent',<$HostID,Role,$pidR,LocalIOCap,LocalAuthReq,LocalMaxEncKeySize,$DevID,$LocalBTAddress,$PeerBTAddress,$ChannelHandle,LocalOOBFlag,PeerIOCap,PeerAuthReq,PeerMaxEncKeySize,PeerOOBFlag,~LocalDHsk,PeerDHpk,SelectedAS,LRand,~LocalRandom,RRand,~PeerRandom,MacKey,LTK>)
+      ]
+    
+    rule responderRevEncExchEvent [color=#fb8b05]:
+      let
+        Role = 'Responder'
+        event1 = <'HCI_Command_Complete', $ChannelHandle>
+        event2 = <'HCI_Encryption_Change', $ChannelHandle>
+      in
+      [
+        HostStateRWaitEncExchEvent('RWaitEncExchEvent',<$HostID,Role,$pidR,LocalIOCap,LocalAuthReq,LocalMaxEncKeySize,$DevID,$LocalBTAddress,$PeerBTAddress,$ChannelHandle,LocalOOBFlag,PeerIOCap,PeerAuthReq,PeerMaxEncKeySize,PeerOOBFlag,~LocalDHsk,PeerDHpk,SelectedAS,LRand,~LocalRandom,RRand,~PeerRandom,MacKey,LTK>),
+        InS2D(<'HCI', 'Event'>, $DevID, $HostID, event1),
+        InS2D(<'HCI', 'Event'>, $DevID, $HostID, event2)
+      ]
+      --[
+        LableProcess($pidR)
+      ]->
+      [
+        HostStateLinkEncrypted('LinkEncrypted',<$HostID,Role,$pidR,LocalIOCap,LocalAuthReq,LocalMaxEncKeySize,$DevID,$LocalBTAddress,$PeerBTAddress,$ChannelHandle,LocalOOBFlag,PeerIOCap,PeerAuthReq,PeerMaxEncKeySize,PeerOOBFlag,~LocalDHsk,PeerDHpk,SelectedAS,LRand,~LocalRandom,RRand,~PeerRandom,MacKey,LTK>)
+      ]
+    
+  /*
+  # ****************************************************************
+  #                  Link Encryption End                 
+  # ****************************************************************
+  # ****************************************************************
+  #         Transport Specific Key Distribution Phase Start                 
+  # ****************************************************************
+  */
+    rule responderSendLocalKeys [color=#fb8b05]:
+      let
+        Role = 'Responder'
+      in
+      [
+        HostStateLinkEncrypted('LinkEncrypted',<$HostID,Role,$pidR,LocalIOCap,LocalAuthReq,LocalMaxEncKeySize,$DevID,$LocalBTAddress,$PeerBTAddress,$ChannelHandle,LocalOOBFlag,PeerIOCap,PeerAuthReq,PeerMaxEncKeySize,PeerOOBFlag,~LocalDHsk,PeerDHpk,SelectedAS,LRand,~LocalRandom,RRand,~PeerRandom,MacKey,LTK>),
+        Fr(~LocalKeys)
+      ]
+      --[
+        LableProcess($pidR),
+        Running($LocalBTAddress,$PeerBTAddress,<'SpecificKeys',rand2Key(~LocalKeys)>)
+      ]->
+      [
+        OutS2D(<'HCI',<'ACL','Host2Controller'>>, $HostID, $DevID, <$ChannelHandle, <'SpecificKeys', rand2Key(~LocalKeys)>>),
+        HostStateWaitPeerKeys('WaitPeerKeys',<$HostID,Role,$pidR,LocalIOCap,LocalAuthReq,LocalMaxEncKeySize,$DevID,$LocalBTAddress,$PeerBTAddress,$ChannelHandle,LocalOOBFlag,PeerIOCap,PeerAuthReq,PeerMaxEncKeySize,PeerOOBFlag,~LocalDHsk,PeerDHpk,SelectedAS,LRand,~LocalRandom,RRand,~PeerRandom,MacKey,LTK,rand2Key(~LocalKeys)>)
+      ]
+    
+    rule responderRevPeerKeys [color=#fb8b05]:
+      let
+        Role = 'Responder'
+      in
+      [
+        HostStateWaitPeerKeys('WaitPeerKeys',<$HostID,Role,$pidR,LocalIOCap,LocalAuthReq,LocalMaxEncKeySize,$DevID,$LocalBTAddress,$PeerBTAddress,$ChannelHandle,LocalOOBFlag,PeerIOCap,PeerAuthReq,PeerMaxEncKeySize,PeerOOBFlag,~LocalDHsk,PeerDHpk,SelectedAS,LRand,~LocalRandom,RRand,~PeerRandom,MacKey,LTK,rand2Key(~LocalKeys)>),
+        InS2D(<'HCI', <'ACL','Controller2Host'>>, $DevID, $HostID, <$ChannelHandle, <'SpecificKeys', rand2Key(~PeerKeys)>>)
+      ]
+      --[
+        LableProcess($pidR),
+        Commit($LocalBTAddress,$PeerBTAddress,<'SpecificKeys',rand2Key(~PeerKeys)>),
+        Session($HostID,$pidR,SelectedAS),
+        SecretSpecificKeys($HostID,$pidI,<rand2Key(~LocalKeys),rand2Key(~PeerKeys)>)
+      ]->
+      [
+        HostStatePairFinished('PairFinished',<$HostID,Role,$pidR,LocalIOCap,LocalAuthReq,LocalMaxEncKeySize,$DevID,$LocalBTAddress,$PeerBTAddress,$ChannelHandle,LocalOOBFlag,PeerIOCap,PeerAuthReq,PeerMaxEncKeySize,PeerOOBFlag,~LocalDHsk,PeerDHpk,SelectedAS,LRand,~LocalRandom,RRand,~PeerRandom,MacKey,LTK,rand2Key(~LocalKeys),rand2Key(~PeerKeys)>)
+      ]
+    
+  /*
+  # ****************************************************************
+  #         Transport Specific Key Distribution Phase End                 
+  # ****************************************************************
+  */

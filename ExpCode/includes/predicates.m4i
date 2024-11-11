@@ -1,0 +1,19 @@
+predicates: 
+  UserReusePasskey() <=> Ex #i. UserInputPerferPasskey()@i,
+  UserUseGuessablePasskey() <=> Ex #i. UserInputPublicConstantPasskey()@i,
+  UserConfusePENC() <=> Ex #i. UserInputAndConfirm()@i,
+
+  BreakIOChannelConfidentialty() <=> Ex subtype src dst msg #i. BrkC(<'IO',subtype>,src,dst,msg)@i,
+  BreakIOChannelIntegrity() <=> Ex subtype src dst msg #i. BrkI(<'IO',subtype>,src,dst,msg)@i,
+  // BreakIOChannel() <=> BreakIOChannelConfidentialty() | BreakIOChannelIntegrity(),
+  BreakIOChannel() <=> (Ex subtype src dst msg #i. BrkC(<'IO',subtype>,src,dst,msg)@i) | (Ex subtype src dst msg #i. BrkI(<'IO',subtype>,src,dst,msg)@i),
+
+  BreakHCIChannelConfidentialty() <=> Ex subtype src dst msg #i. BrkC(<'HCI',subtype>,src,dst,msg)@i,
+  BreakHCIChannelIntegrity() <=> Ex subtype src dst msg #i. BrkI(<'HCI',subtype>,src,dst,msg)@i,
+  // BreakHCIChannel() <=> BreakHCIChannelConfidentialty() | BreakHCIChannelIntegrity(),
+  BreakHCIChannel() <=> (Ex subtype src dst msg #i. BrkC(<'HCI',subtype>,src,dst,msg)@i) | (Ex subtype src dst msg #i. BrkI(<'HCI',subtype>,src,dst,msg)@i),
+
+  BreakOOBChannelConfidentialty() <=> Ex src dst msg #i. BrkC('OOB',src,dst,msg)@i,
+  BreakOOBChannelIntegrity() <=> Ex src dst msg #i. BrkI('OOB',src,dst,msg)@i,
+  // BreakOOBChannel() <=> BreakOOBChannelConfidentialty() | BreakOOBChannelIntegrity(),
+  BreakOOBChannel() <=> (Ex src dst msg #i. BrkC('OOB',src,dst,msg)@i) | (Ex src dst msg #i. BrkI('OOB',src,dst,msg)@i),

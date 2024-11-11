@@ -1,0 +1,232 @@
+/*
+* ****************************************************************
+*                            Lemmas                   
+* ****************************************************************
+*/
+
+  /*
+  * *****************************
+  *    Source Lemmas                   
+  * *****************************
+  */
+  lemma type [sources, heuristic={type}]:
+    "(All m1 m2 m3 m4 #i. SRC_IN_FACT_HOST_REV_PASSKEY(m1,m2,m3,m4)@i ==> (Ex #j. SRC_OUT_FACT_USER_INPUT_PASSKEY(m1,m2,m3,m4)@j & j < i)
+                                                                         |  (Ex #j. BrkI(m1,m2,m3,m4)@j & j < i)) &
+     (All m1 m2 m3 m4 #i. SRC_IN_FACT_USER_GET_DISPLYED_NUMBER(m1,m2,m3,m4)@i ==> (Ex #j. SRC_OUT_FACT_HOST_DISPLY_NUMBER(m1,m2,m3,m4)@j & j < i)
+                                                                                 |  (Ex #j. BrkI(m1,m2,m3,m4)@j & j < i))"
+ 
+  /*
+  * *****************************
+  *    Help Lemmas                   
+  * *****************************
+  */
+  // Secrecy of private key
+  lemma SecrecyOfDHPrivateKey [heuristic={secrecyOFDHPrivateKey}, reuse]:
+    "
+    All sk #i. SecretPrivateKey(sk)@i ==> not(Ex #j. KU(sk)@j)
+    "
+
+  /*
+  * *****************************
+  *    Lemmas Must be verified                  
+  * *****************************
+  */
+  lemma RevOOBDataAlwaysRunOOBAS  [heuristic={tactic4RevOOBDataAlwaysRunOOBAS}]:
+  "All hostI hostR pidI pidR ASI ASR #i #j #k. DeviceConnect(hostI,hostR,pidI,pidR)@i & IFinishedAuth2(hostI,pidI,ASI)@j & RFinishedAuth2(hostR,pidR,ASR)@k
+    ==> (All #l. HostRevOOBData(hostI,pidI)@l & (i < l) & (l < j)==> (ASI = OOBAS & ASR = OOBAS))
+      | (All #l. HostRevOOBData(hostR,pidR)@l & (i < l) & (l < k)==> (ASI = OOBAS & ASR = OOBAS))
+      | BreakOOBChannelIntegrity()
+    "
+
+
+
+  /*
+  * *****************************
+  *         Test Lemmas                 
+  * *****************************
+  */
+  
+  /*
+  * *****************************
+  *    General Lemmas                   
+  * *****************************
+  */
+dnl ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+divert(-1)
+
+// lemma basic functions
+define(`RemoveNot', `esyscmd(echo -n $1 | sed "s/Not//g")')dnl
+define(`AddBrackets', `esyscmd(echo -n $1 | sed "s/[^ ]\+/&()/g" | tr -d "\n")')dnl
+define(`CombineOr', `| esyscmd(echo -n $1 | sed "s/ /\ |\ /g")')dnl
+define(`CombineUnderscore', `esyscmd(echo -n $1 | sed "s/ /_/g")')dnl
+define(`LemmaName', `ifelse($2, `', $1, CombineUnderscore("$1 $2"))')dnl
+define(`BreakOOB', `ifdef(`INoOOB', `' , | BreakOOBChannel())')dnl
+define(`GenerateLemmasUser', `
+  $1
+  $1("UserNotReusePasskey")
+  $1("UserNotUseGuessablePasskey")
+  $1("UserNotConfusePENC")
+  $1("UserNotConfusePENC UserNotUseGuessablePasskey")
+  $1("UserNotReusePasskey UserNotUseGuessablePasskey")
+  $1("UserNotConfusePENC UserNotReusePasskey")
+  $1("UserNotConfusePENC UserNotReusePasskey UserNotUseGuessablePasskey")
+')dnl
+
+changequote(<!,!>)
+
+define(LemmaASConsistency, <!
+  lemma LemmaName(ASConsistency, $1) [heuristic={tactic4ASConsistency}]:
+    "
+    All HostI HostR pidI pidR ASI ASR #i #j #k. 
+      IFinishedAuth2(HostI,pidI,ASI)@i & RFinishedAuth2(HostR,pidR,ASR)@j & DeviceConnect(HostI,HostR,pidI,pidR)@k 
+        ==> (ASI = ASR) | BreakIOChannel()
+        BreakOOB() 
+        ifelse($#,0, `', CombineOr("AddBrackets("RemoveNot($1)")"))
+    "
+!>)
+
+define(LemmaAuthIOCaps, <!
+  lemma LemmaName(AuthIOCaps, $1) [heuristic={tactic4AuthIOCaps}]:
+    "
+    All I R t host pid AS #i. 
+      Commit(I,R,<'IOCaps',t>)@i & Session(host,pid,AS)@i ==> (Ex #j. Running(R,I,<'IOCaps',t>)@j) 
+        | (AS = JW) | BreakIOChannel()
+        BreakOOB() 
+        ifelse($#,0, `', CombineOr("AddBrackets("RemoveNot($1)")"))
+    "
+!>)
+
+define(LemmaAuthRandomNumber, <!
+  lemma LemmaName(AuthRandomNumber, $1) [heuristic={tactic4AuthRandomNumber}]:
+    "
+    All I R t host pid AS #i. Commit(I,R,<'RandomNumber',t>)@i & Session(host,pid,AS)@i ==> (Ex #j. Running(R,I,<'RandomNumber',t>)@j)
+        | (AS = JW) | BreakIOChannel()
+        BreakOOB() 
+        ifelse($#,0, `', CombineOr("AddBrackets("RemoveNot($1)")"))
+    "
+!>)
+
+define(LemmaAuthDHKey, <!
+  lemma LemmaName(AuthDHKey, $1) [heuristic={tactic4AuthDHKey}]:
+    "
+    All I R t host pid AS #i. Commit(I,R,<'DHKey',t>)@i & Session(host,pid,AS)@i ==> (Ex #j. Running(R,I,<'DHKey',t>)@j)
+      | (AS = JW) | BreakIOChannel()
+      BreakOOB() 
+      ifelse($#,0, `', CombineOr("AddBrackets("RemoveNot($1)")"))
+    "
+!>)
+
+define(LemmaAuthMacKey, <!
+  lemma LemmaName(AuthMacKey, $1) [heuristic={tactic4AuthMacKey}]:
+    "
+    All I R t host pid AS #i. Commit(I,R,<'MacKey',t>)@i & Session(host,pid,AS)@i ==> (Ex #j. Running(R,I,<'MacKey',t>)@j)
+      | (AS = JW) | BreakIOChannel()
+      BreakOOB() 
+      ifelse($#,0, `', CombineOr("AddBrackets("RemoveNot($1)")"))
+    "
+!>)
+
+
+define(LemmaAuthSK, <!
+  lemma LemmaName(AuthSK, $1) [heuristic={tactic4AuthSK}]:
+    "
+    All aA I R t host role channelhandle AS #i #j. CntrollerCommit(aA,I,R,<'SK',t>)@i & HostInfo(host,role,channelhandle)@i & SelectASHandle(host,role,channelhandle,AS)@j & (j < i) ==> (Ex #k. CntrollerRunning(aA,R,I,<'SK',t>)@k)
+      | (AS = JW) | BreakIOChannel() | BreakHCIChannel()
+      BreakOOB() 
+      ifelse($#,0, `', CombineOr("AddBrackets("RemoveNot($1)")"))
+    "
+!>)
+
+define(LemmaSecrecy_SK, <!
+  lemma LemmaName(secrecy_SK, $1) [heuristic={tactic4secrecy_SK}]:
+    "
+    All host role chnHD SK #i.
+      // The SK generated by the controller binded to host host in channelHandle pid is secret
+      SecretSK(host,role,chnHD,SK)@i
+        ==>
+          // introder does not kown SK
+          not (Ex #j. K(SK)@j)
+          // unless host at this process select JW association model
+          | (Ex #k. SelectASHandle(host,role,chnHD,JW)@k & k < i)
+          | BreakHCIChannel() | BreakIOChannel()
+          BreakOOB()
+          ifelse($#,0, `', CombineOr("AddBrackets("RemoveNot($1)")"))
+    "
+!>)
+
+define(LemmaSecrecy_LTK, <!
+  lemma LemmaName(secrecy_LTK, $1) [heuristic={tactic4secrecy_LTK}]:
+    "
+    All host pid LTK AS #i. 
+      // LTK of host at its pid process is secret
+      SecretLTK(host,pid,LTK)@i & Session(host,pid,AS)@i
+        ==> 
+          // introder does not kown LTK
+          not (Ex #j. K(LTK)@j) 
+          // unless host at this process select JW association model
+          | (AS = JW)
+          | BreakHCIChannel() | BreakIOChannel()
+          BreakOOB()
+          ifelse($#,0, `', CombineOr("AddBrackets("RemoveNot($1)")"))
+    "
+!>)
+
+define(LemmaSecrecy_SpecificKeys, <!
+  lemma LemmaName(secrecy_SpecificKeys, $1) [heuristic={tactic4secrecy_SpecificKeys}]:
+    "
+    All host pid keys AS #i. 
+      // keys of host at its pid process is secret
+      SecretSpecificKeys(host,pid,keys)@i & Session(host,pid,AS)@i
+        ==> 
+          // introder does not kown keys
+          not (Ex #j. K(keys)@j) 
+          // unless host at this process select JW association model
+          | (AS = JW) | BreakHCIChannel() | BreakIOChannel()
+          BreakOOB()
+          ifelse($#,0, `', CombineOr("AddBrackets("RemoveNot($1)")"))
+    "
+!>)
+
+changequote
+dnl ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+divert(0)dnl
+
+  //! The Association Model Executed by the two devices should be consistent.
+  GenerateLemmasUser(`LemmaASConsistency')
+
+/*
+  Secure in weak assumptions implies secure in strong assumptions.
+*/
+  /*
+  ! *****************************
+  !    Authentication Lemmas         
+  ! *****************************
+  */
+  GenerateLemmasUser(`LemmaAuthIOCaps')
+
+  GenerateLemmasUser(`LemmaAuthRandomNumber')
+
+  GenerateLemmasUser(`LemmaAuthDHKey')
+
+  GenerateLemmasUser(`LemmaAuthMacKey')
+
+  lemma AuthLTK_StrongestAssumptions [heuristic={tactic4AuthLTK}]:
+    "
+    All I R t host pid AS #i. Commit(I,R,<'LTK',t>)@i & Session(host,pid,AS)@i ==> (Ex #j. Running(R,I,<'LTK',t>)@j)
+      | (AS = JW) | BreakIOChannel() | BreakIOChannel() | BreakIOChannel() | UserReusePasskey() | UserUseGuessablePasskey() | UserConfusePENC()
+    "
+
+  GenerateLemmasUser(`LemmaAuthSK')
+
+  /*
+  ! *****************************
+  !        Secrecy Lemmas         
+  ! *****************************
+  */
+  //! Secrecy of LTK
+  GenerateLemmasUser(`LemmaSecrecy_LTK')
+
+  //! Secrecy of SK
+  GenerateLemmasUser(`LemmaSecrecy_SK')
+
+  GenerateLemmasUser(`LemmaSecrecy_SpecificKeys')

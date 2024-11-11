@@ -1,0 +1,62 @@
+/*
+* ****************************************************************
+*                   Communication Channel                   
+* ****************************************************************
+*
+* Src --> Channel --> Dst
+*
+*/
+  /*
+  #Modeling Communication Channel
+  */
+  // Src --> Channel
+  rule chnsrc2DstSrc2Chn [color=#f9f4dc]:
+    [ OutS2D(channelType, $Src, $Dst, msg)]
+    --[
+      Neq($Src, $Dst)
+    ]->
+    [ !ChannelState(channelType, $Src, $Dst, msg) ]
+
+  // Channel --> Dst
+  rule chnsrc2DstChn2Dst [color=#f9f4dc]:
+    [ !ChannelState(channelType, $Src, $Dst, msg) ]
+    --[
+      Neq($Src, $Dst),
+      Channel2Dst(channelType,$Src,$Dst,msg),
+    ]->
+    [ InS2D(channelType, $Src, $Dst, msg) ]
+
+  /*
+  # Modeling Channel Compromise
+  */
+  // Break Confidentialty
+  rule rulechannelBrkC [color=#FF3333]:
+    [ !ChannelState(channelType, $Src, $Dst, msg) ]
+    --[
+      BrkC(channelType,$Src,$Dst,msg),
+      OnlyOnceV(<channelType, $Src, $Dst, msg>)
+    ]->
+    [ 
+      Out(<channelType,$Src,$Dst,msg>)
+    ]
+
+  // Break Integrity
+  rule rulechannelBrkI [color=#FF3333]:
+    [ In(<channelType,$Src,$Dst,msg>) ]
+    --[
+      BrkI(channelType,$Src,$Dst,msg),
+      SRC_OUT_FACT_BREAK_IO_Integrity(channelType,$Src,$Dst,msg)
+    ]->
+    [ InS2D(channelType, $Src, $Dst, msg) ]
+
+  // channelType:
+  // <'IO','DisplayWithYN'>
+  // <'IO','AskForInput'>
+  // <'IO', 'Display'>
+  // <'IO', 'PushButton'>
+  // <'IO', 'Input'>
+  // 'OOB'
+  // <'HCI',<'ACL','Host2Controller'>>
+  // <'HCI',<'ACL','Controller2Host'>>
+  // <'HCI','Command'>
+  // <'HCI','Event'>

@@ -1,0 +1,7 @@
+bs4==0.0.2
+paramiko==3.5.0
+pip==24.0
+reprint==0.6.0
+requests==2.32.3
+tqdm==4.66.5
+

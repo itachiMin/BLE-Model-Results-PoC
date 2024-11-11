@@ -1,0 +1,194 @@
+/*
+* ****************************************************************
+*                       User's Behaviours                   
+* ****************************************************************
+*/
+  rule createUser [color=#eea2a4]:
+    let
+      Role1 = 'Initiator'
+      Role2 = 'Responder'
+    in
+    [
+      !HostCtrollerBinded($HostID1,Role1,LocalIOCap1,OOBCap1,LocalAuthReq1,LocalMaxEncKeySize1,$DevID1,$BTAddress1),
+      !HostCtrollerBinded($HostID2,Role2,LocalIOCap2,OOBCap2,LocalAuthReq2,LocalMaxEncKeySize2,$DevID2,$BTAddress2),
+      Fr(~passkey)
+    ]
+    --[OnlyOnceV('User'), Neq($HostID1, $HostID2)]->
+    [
+      !UserStatePermanent($UserID,$HostID1,$HostID2), // The user $UserID wants to pair device BTDev1 with device BTDev2
+      // UserStatePermanent($UserID,$HostID1,$HostID2), // The user $UserID interacts twice.
+      !Prefer($UserID, rand2Num(~passkey)),
+      UserPatienceToken($UserID),
+      UserPatienceToken($UserID)
+    ]
+  /*
+  User compares the two displayed numbers and pushes "Y" button if the two number are equil.
+  */
+  rule userCmpCfmNC [color=#eea2a4]:
+    [
+      !UserStatePermanent($UserID,$BTDev1,$BTDev2),
+      InS2D(<'IO', 'DisplayWithYN'>, $BTDev1, $UserID, <$pid1,num>),
+      InS2D(<'IO', 'DisplayWithYN'>, $BTDev2, $UserID, <$pid2,num>),
+      UserInteractToken($UserID,$BTDev1,$BTDev2,$pid1,$pid2)
+    ]
+    --[
+      Neq($BTDev1, $BTDev2),
+      UserInteract($BTDev1, $BTDev2, $pid1, $pid2),
+      SRC_IN_FACT_USER_SEE_IO(<'IO', 'DisplayWithYN'>, $BTDev1, $UserID, <$pid1,num>),
+      SRC_IN_FACT_USER_SEE_IO(<'IO', 'DisplayWithYN'>, $BTDev2, $UserID, <$pid2,num>)
+    ]->
+    [
+      OutS2D(<'IO', 'PushButton'>, $UserID, $BTDev1, <$pid1,'Y'>),
+      OutS2D(<'IO', 'PushButton'>, $UserID, $BTDev2, <$pid2,'Y'>)
+    ]
+  /*
+  User inputs a self-chosen number to the two devices.
+  */
+  rule userDualHInputFreshPE [color=#eea2a4]:
+    [
+      !UserStatePermanent($UserID,$BTDev1,$BTDev2),
+      InS2D(<'IO', 'AskForInput'>,$BTDev1, $UserID, <$pid1,'InputField'>),
+      InS2D(<'IO', 'AskForInput'>, $BTDev2, $UserID, <$pid2,'InputField'>),
+      Fr(~passkey),
+      UserInteractToken($UserID,$BTDev1,$BTDev2,$pid1,$pid2)
+    ]
+    --[
+      Neq($BTDev1, $BTDev2),
+      UserInteract($BTDev1, $BTDev2, $pid1, $pid2),
+      SRC_OUT_FACT_USER_INPUT_PASSKEY(<'IO', 'Input'>, $UserID, $BTDev1, <$pid1,rand2Num(~passkey)>),
+      SRC_OUT_FACT_USER_INPUT_PASSKEY(<'IO', 'Input'>, $UserID, $BTDev2, <$pid2,rand2Num(~passkey)>),
+      SRC_IN_FACT_USER_SEE_IO(<'IO', 'AskForInput'>, $BTDev1, $UserID, <$pid1,'InputField'>),
+      SRC_IN_FACT_USER_SEE_IO(<'IO', 'AskForInput'>, $BTDev2, $UserID, <$pid2,'InputField'>)
+    ]->
+    [
+      OutS2D(<'IO', 'Input'>, $UserID, $BTDev1, <$pid1,rand2Num(~passkey)>),
+      OutS2D(<'IO', 'Input'>, $UserID, $BTDev2, <$pid2,rand2Num(~passkey)>)
+    ]
+
+  rule userDualHInputPreferPE [color=#eea2a4]:
+    [
+      !UserStatePermanent($UserID,$BTDev1,$BTDev2),
+      InS2D(<'IO', 'AskForInput'>, $BTDev1, $UserID, <$pid1,'InputField'>),
+      InS2D(<'IO', 'AskForInput'>, $BTDev2, $UserID, <$pid2,'InputField'>),
+      !Prefer($UserID, passkey),
+      UserPatienceToken($UserID),
+      UserInteractToken($UserID,$BTDev1,$BTDev2,$pid1,$pid2)
+    ]
+    --[
+      Neq($BTDev1, $BTDev2),
+      UserInteract($BTDev1, $BTDev2, $pid1, $pid2),
+      UserInputPerferPasskey(),
+      SRC_OUT_FACT_USER_INPUT_PASSKEY(<'IO', 'Input'>, $UserID, $BTDev1, <$pid1,passkey>),
+      SRC_OUT_FACT_USER_INPUT_PASSKEY(<'IO', 'Input'>, $UserID, $BTDev2, <$pid2,passkey>),
+      SRC_IN_FACT_USER_SEE_IO(<'IO', 'AskForInput'>, $BTDev1, $UserID, <$pid1,'InputField'>),
+      SRC_IN_FACT_USER_SEE_IO(<'IO', 'AskForInput'>, $BTDev2, $UserID, <$pid2,'InputField'>)
+    ]->
+    [
+      OutS2D(<'IO', 'Input'>, $UserID, $BTDev1, <$pid1,passkey>),
+      OutS2D(<'IO', 'Input'>, $UserID, $BTDev2, <$pid2,passkey>)
+    ]
+
+  rule UserDualHInputConstantPE [color=#eea2a4]:
+    [
+      !UserStatePermanent($UserID,$BTDev1,$BTDev2),
+      InS2D(<'IO', 'AskForInput'>, $BTDev1, $UserID, <$pid1,'InputField'>),
+      InS2D(<'IO', 'AskForInput'>, $BTDev2, $UserID, <$pid2,'InputField'>),
+      UserInteractToken($UserID,$BTDev1,$BTDev2,$pid1,$pid2)
+    ]
+    --[
+      Neq($BTDev1, $BTDev2),
+      UserInteract($BTDev1, $BTDev2, $pid1, $pid2),
+      UserInputPublicConstantPasskey(),
+      SRC_OUT_FACT_USER_INPUT_PASSKEY(<'IO', 'Input'>, $UserID, $BTDev1, <$pid1,$passkey>),
+      SRC_OUT_FACT_USER_INPUT_PASSKEY(<'IO', 'Input'>, $UserID, $BTDev2, <$pid2,$passkey>),
+      SRC_IN_FACT_USER_SEE_IO(<'IO', 'AskForInput'>, $BTDev1, $UserID, <$pid1,'InputField'>),
+      SRC_IN_FACT_USER_SEE_IO(<'IO', 'AskForInput'>, $BTDev2, $UserID, <$pid2,'InputField'>)
+    ]->
+    [
+      OutS2D(<'IO', 'Input'>, $UserID, $BTDev1, <$pid1,$passkey>),
+      OutS2D(<'IO', 'Input'>, $UserID, $BTDev2, <$pid2,$passkey>)
+    ]
+  /*
+  User inputs the number displayed on the Initiator to the Responder.
+  */
+  rule userInitDDispResDInputPE [color=#eea2a4]:
+    [
+      !UserStatePermanent($UserID,$BTDev1,$BTDev2),
+      InS2D(<'IO', 'Display'>, $BTDev1, $UserID, <$pid1,num>),
+      InS2D(<'IO', 'AskForInput'>, $BTDev2, $UserID, <$pid2,'InputField'>),
+      UserInteractToken($UserID,$BTDev1,$BTDev2,$pid1,$pid2)
+    ]
+    --[
+      UserInteract($BTDev1, $BTDev2, $pid1, $pid2),
+      SRC_OUT_FACT_USER_INPUT_PASSKEY(<'IO', 'Input'>, $UserID, $BTDev2, <$pid2,num>),
+      SRC_IN_FACT_USER_GET_DISPLYED_NUMBER(<'IO', 'Display'>, $BTDev1, $UserID, <$pid1,num>),
+      SRC_IN_FACT_USER_SEE_IO(<'IO', 'Display'>, $BTDev1, $UserID, <$pid1,num>),
+      SRC_IN_FACT_USER_SEE_IO(<'IO', 'AskForInput'>, $BTDev2, $UserID, <$pid2,'InputField'>)
+    ]->
+    [
+      OutS2D(<'IO', 'Input'>, $UserID, $BTDev2, <$pid2,num>)
+    ]
+  /*
+  User inputs the number displayed on the Responder to the Initiator.
+  */
+  rule userInitDInputResDDispPE [color=#eea2a4]:
+    [
+      !UserStatePermanent($UserID,$BTDev1,$BTDev2),
+      InS2D(<'IO', 'AskForInput'>, $BTDev1, $UserID, <$pid1,'InputField'>),
+      InS2D(<'IO', 'Display'>, $BTDev2, $UserID, <$pid2,num>),
+      UserInteractToken($UserID,$BTDev1,$BTDev2,$pid1,$pid2)
+    ]
+    --[
+      UserInteract($BTDev1, $BTDev2, $pid1, $pid2),
+      SRC_OUT_FACT_USER_INPUT_PASSKEY(<'IO', 'Input'>, $UserID, $BTDev1, <$pid1,num>),
+      SRC_IN_FACT_USER_GET_DISPLYED_NUMBER(<'IO', 'Display'>, $BTDev2, $UserID, <$pid2,num>),
+      SRC_IN_FACT_USER_SEE_IO(<'IO', 'AskForInput'>, $BTDev1, $UserID, <$pid1,'InputField'>),
+      SRC_IN_FACT_USER_SEE_IO(<'IO', 'Display'>, $BTDev2, $UserID, <$pid2,num>)
+    ]->
+    [
+      OutS2D(<'IO', 'Input'>, $UserID, $BTDev1, <$pid1,num>)
+    ]
+  /*
+  User inputs the number displayed on the Initiator to the Responder and pushes "Y" button on the Initiator.
+  */
+  rule userInitDInputResDCfmUnexpected [color=#eea2a4]:
+    [
+      !UserStatePermanent($UserID,$BTDev1,$BTDev2),
+      InS2D(<'IO', 'AskForInput'>, $BTDev1, $UserID, <$pid1,'InputField'>),
+      InS2D(<'IO', 'DisplayWithYN'>, $BTDev2, $UserID, <$pid2,num>),
+      UserInteractToken($UserID,$BTDev1,$BTDev2,$pid1,$pid2)
+    ]
+    --[
+      UserInteract($BTDev1, $BTDev2, $pid1, $pid2),
+      UserInputAndConfirm(),
+      SRC_OUT_FACT_USER_INPUT_PASSKEY(<'IO', 'Input'>, $UserID, $BTDev1, <$pid1,num>),
+      SRC_IN_FACT_USER_GET_DISPLYED_NUMBER(<'IO', 'DisplayWithYN'>, $BTDev2, $UserID, <$pid2,num>),
+      SRC_IN_FACT_USER_SEE_IO(<'IO', 'AskForInput'>, $BTDev1, $UserID, <$pid1,'InputField'>),
+      SRC_IN_FACT_USER_SEE_IO(<'IO', 'DisplayWithYN'>, $BTDev2, $UserID, <$pid2,num>)
+    ]->
+    [
+      OutS2D(<'IO', 'Input'>, $UserID, $BTDev1, <$pid1,num>),
+      OutS2D(<'IO', 'PushButton'>, $UserID, $BTDev2, <$pid2,'Y'>)
+    ]
+  /*
+  User inputs the number displayed on the Responder to the Initiator and pushes "Y" button on the Responder.
+  */
+  rule userInitDCfmResDInputUnexpected [color=#eea2a4]:
+    [
+      !UserStatePermanent($UserID,$BTDev1,$BTDev2),
+      InS2D(<'IO', 'DisplayWithYN'>, $BTDev1, $UserID, <$pid1,num>),
+      InS2D(<'IO', 'AskForInput'>, $BTDev2, $UserID, <$pid2,'InputField'>),
+      UserInteractToken($UserID,$BTDev1,$BTDev2,$pid1,$pid2)
+    ]
+    --[
+      UserInteract($BTDev1, $BTDev2, $pid1, $pid2),
+      UserInputAndConfirm(),
+      SRC_OUT_FACT_USER_INPUT_PASSKEY(<'IO', 'Input'>, $UserID, $BTDev2, <$pid2,num>),
+      SRC_IN_FACT_USER_GET_DISPLYED_NUMBER(<'IO', 'DisplayWithYN'>, $BTDev1, $UserID, <$pid1,num>),
+      SRC_IN_FACT_USER_SEE_IO(<'IO', 'DisplayWithYN'>, $BTDev1, $UserID, <$pid1,num>),
+      SRC_IN_FACT_USER_SEE_IO(<'IO', 'AskForInput'>, $BTDev2, $UserID, <$pid2,'InputField'>)
+    ]->
+    [
+      OutS2D(<'IO', 'PushButton'>, $UserID, $BTDev1, <$pid1,'Y'>),
+      OutS2D(<'IO', 'Input'>, $UserID, $BTDev2, <$pid2,num>)
+    ]

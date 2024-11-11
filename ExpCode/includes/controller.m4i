@@ -1,0 +1,224 @@
+/*
+* ****************************************************************
+*                      Modeling Controller                   
+* ****************************************************************
+*/
+  // Controller Send/Rev MSG to/from BT
+  rule loopCtrllerSendplaintext [color=#e4bf11]:
+    [
+      !ControllerStateConnection('Connection',<$DevID,$HostID,$BTAddress,$ChannelHandle,Role,$pid,$AccessAddress>),
+      InS2D(<'HCI', <'ACL','Host2Controller'>>, $HostID, $DevID, <$ChannelHandle, msg>)
+    ]
+    --[
+      ControllerSendPlaintext(<Role,$pid>),
+      LableProcess($pid)
+    ]->
+    [
+      Out(<$AccessAddress,'Data',msg>)
+    ]
+
+  rule loopCtrllerRevPlaintext [color=#e4bf11]:
+    [
+      !ControllerStateConnection('Connection',<$DevID,$HostID,$BTAddress,$ChannelHandle,Role,$pid,$AccessAddress>),
+      In(<$AccessAddress,'Data',msg>)
+    ]
+    --[
+      ControllerRevPlaintext(<Role,$pid>),
+      LableProcess($pid),
+      TestController1()
+    ]->
+    [
+      OutS2D(<'HCI', <'ACL','Controller2Host'>>, $DevID, $HostID, <$ChannelHandle, msg>)
+    ]
+
+  rule ruleCenteralReqEnc [color=#e4bf11]:
+    let
+      Role = 'Centeral'
+      command = <'HCI_LE_Enable_Encryption',$ChannelHandle,LTK>
+      SKDI = ~Localskd
+      event = <'HCI_Command_Status','HCI_LE_Enable_Encryption',$ChannelHandle>
+    in
+    [
+      !ControllerStateConnection('Connection',<$DevID,$HostID,$BTAddress,$ChannelHandle,Role,$pid,$AccessAddress>),
+      InS2D(<'HCI','Command'>, $HostID, $DevID, command),
+      Fr(~Localskd)
+    ]
+    --[
+      StopSendRevPlaintext(<Role,$pid>), // Controller no longer send or rev plaintext after this
+      LableProcess($pid),
+      OnlyOnceV(<'CReqEnc',$pid>),
+      TestController2()
+    ]->
+    [
+      OutS2D(<'HCI','Event'>, $DevID, $HostID, event),
+      Out(<$AccessAddress,'Ctrl',<'LL_ENC_REQ',SKDI>>),
+      ControllerStateCWaitEncRsp('CWaitEncRsp',<$DevID,$HostID,$BTAddress,$ChannelHandle,Role,$pid,$AccessAddress,<SKDI,LTK>>)
+    ]
+
+  rule ruleCenteralRspSEncReq [color=#e4bf11]:
+    let
+      SKDR = ~Peerskd
+      SKD = <SKDI,SKDR>
+      SK = KDF(SKD,LTK)
+      Role = 'Centeral'
+      msg = <'Ctrl','LL_START_ENC_RSP'>
+      cipher = senc(<msg,Role>,SK)
+    in
+    [
+      ControllerStateCWaitEncRsp('CWaitEncRsp',<$DevID,$HostID,$BTAddress,$ChannelHandle,Role,$pid,$AccessAddress,<SKDI,LTK>>),
+      In(<$AccessAddress,'Ctrl',<'LL_ENC_RSP',~Peerskd>>),
+      In(<$AccessAddress,'Ctrl','LL_START_ENC_REQ'>)
+    ]
+    --[
+      SecretSK($HostID,'Initiator',$ChannelHandle,SK),
+      LableProcess($pid),
+      CntrollerRunning($AccessAddress,'Centeral','Peripheral',<'SK',SK>)
+    ]->
+    [
+      Out(<$AccessAddress,cipher>),
+      ControllerStateCWaitSEncRsp('CWaitSEncRsp',<$DevID,$HostID,$BTAddress,$ChannelHandle,Role,$pid,$AccessAddress,SK>)
+    ]
+
+  rule ruleCenteralRevSEncRsp [color=#e4bf11]:
+    let
+      msg = <'Ctrl','LL_START_ENC_RSP'>
+      event = <'HCI_Encryption_Change', $ChannelHandle>
+      Role = 'Centeral'
+      cipher = senc(<msg,'Peripheral'>,SK)
+    in
+    [
+      ControllerStateCWaitSEncRsp('CWaitSEncRsp',<$DevID,$HostID,$BTAddress,$ChannelHandle,Role,$pid,$AccessAddress,SK>),
+      In(<$AccessAddress,cipher>)
+    ]
+    --[
+      ControllerStartEnc(<Role,$pid>),
+      LableProcess($pid),
+      HostInfo($HostID,'Initiator',$ChannelHandle),
+      CntrollerCommit($AccessAddress,'Centeral','Peripheral',<'SK',SK>)
+    ]->
+    [
+      OutS2D(<'HCI','Event'>, $DevID, $HostID, event),
+      !ControllerStateEncrypted('Encrypted',<$DevID,$HostID,$BTAddress,$ChannelHandle,Role,$pid,$AccessAddress,SK>)
+    ]
+
+  rule rulePeripheralReqLTK [color=#e4bf11]:
+    let
+      Role = 'Peripheral'
+      SKDI = ~Peerskd
+      SKDR = ~Localskd
+      event = <'HCI_LE_Long_Term_Key_Request',$ChannelHandle>
+    in
+    [
+      !ControllerStateConnection('Connection',<$DevID,$HostID,$BTAddress,$ChannelHandle,Role,$pid,$AccessAddress>),
+      In(<$AccessAddress,'Ctrl',<'LL_ENC_REQ',~Peerskd>>),
+      Fr(~Localskd)
+    ]
+    --[
+      StopSendRevPlaintext(<Role,$pid>), // Controller no longer send or rev plaintext after this
+      LableProcess($pid),
+      OnlyOnceV(<'PReqLTK',$ChannelHandle>)
+    ]->
+    [
+      Out(<$AccessAddress,'Ctrl',<'LL_ENC_RSP',SKDR>>),
+      OutS2D(<'HCI','Event'>, $DevID, $HostID, event),
+      ControllerStatePWaitLTK('PWaitLTK',<$DevID,$HostID,$BTAddress,$ChannelHandle,Role,$pid,$AccessAddress,<SKDI,SKDR>>)
+    ]
+
+  rule rulePeripheralSendSEncReq [color=#e4bf11]:
+    let
+      command = <'HCI_LE_Long_Term_Key_Request_Reply',$ChannelHandle,LTK>
+      SKD = <SKDI,SKDR>
+      SK = KDF(SKD,LTK)
+      Role = 'Peripheral'
+      event = <'HCI_Command_Complete', $ChannelHandle>
+    in
+    [
+      ControllerStatePWaitLTK('PWaitLTK',<$DevID,$HostID,$BTAddress,$ChannelHandle,Role,$pid,$AccessAddress,<SKDI,SKDR>>),
+      InS2D(<'HCI','Command'>, $HostID, $DevID, command)
+    ]
+    --[
+      SecretSK($HostID,'Responder',$ChannelHandle,SK),
+      LableProcess($pid),
+      CntrollerRunning($AccessAddress,'Peripheral','Centeral',<'SK',SK>)
+    ]->
+    [
+      OutS2D(<'HCI','Event'>, $DevID, $HostID, event),
+      Out(<$AccessAddress,'Ctrl','LL_START_ENC_REQ'>),
+      ControllerStatePWaitSEncRsp('PWaitSEncRsp',<$DevID,$HostID,$BTAddress,$ChannelHandle,Role,$pid,$AccessAddress,SK>)
+    ]
+
+  rule rulePeripheralExchSEncRsp [color=#e4bf11]:
+    let
+      Role = 'Peripheral'
+      msgIn = <'Ctrl','LL_START_ENC_RSP'>
+      msgOut = <'Ctrl','LL_START_ENC_RSP'>
+      cipherIn = senc(<msgIn,'Centeral'>,SK)
+      cipherOut = senc(<msgIn,Role>,SK)
+      event = <'HCI_Encryption_Change', $ChannelHandle>
+    in
+    [
+      ControllerStatePWaitSEncRsp('PWaitSEncRsp',<$DevID,$HostID,$BTAddress,$ChannelHandle,Role,$pid,$AccessAddress,SK>),
+      In(<$AccessAddress,cipherIn>)
+    ]
+    --[
+      ControllerStartEnc(<Role,$pid>),
+      LableProcess($pid),
+      HostInfo($HostID,'Responder',$ChannelHandle),
+      CntrollerCommit($AccessAddress,'Peripheral','Centeral',<'SK',SK>)
+    ]->
+    [
+      Out(<$AccessAddress,cipherOut>),
+      OutS2D(<'HCI','Event'>, $DevID, $HostID, event),
+      !ControllerStateEncrypted('Encrypted',<$DevID,$HostID,$BTAddress,$ChannelHandle,Role,$pid,$AccessAddress,SK>)
+    ]
+
+
+  dnl ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  divert(-1)
+  changequote(<!,!>)
+  define(Generate_CtrllerSendEncryptedKeys,
+  <!rule ruleperipheralCenteralCtrllerSendEncryptedKeys [color=#e4bf11]:
+    let
+      msg = <'SpecificKeys',rand2Key(~keys)>
+      cipher = senc(<<'Data',msg>,Role>,SK)
+    in
+    [
+      !ControllerStateEncrypted('Encrypted',<$DevID,$HostID,$BTAddress,$ChannelHandle,Role,$pid,$AccessAddress,SK>),
+      InS2D(<'HCI', <'ACL','Host2Controller'>>, $HostID, $DevID, <$ChannelHandle, msg>)
+    ]
+    --[
+      ControllerSendCiphertext(<Role,$pid>),
+      LableProcess($pid),
+      SendEncryptedMSG(msg)
+    ]->
+    [
+      Out(<$AccessAddress,cipher>)
+    ]!>)
+
+  define(Generate_CtrllerRevEncryptedKeys,
+  <!rule rule$1CtrllerRevEncryptedKeys [color=#e4bf11]:
+    let
+      Role = $2
+      cipher = senc(<<'Data',<'SpecificKeys',rand2Key(~keys)>>,$3>,SK)
+    in
+    [
+      !ControllerStateEncrypted('Encrypted',<$DevID,$HostID,$BTAddress,$ChannelHandle,Role,$pid,$AccessAddress,SK>),
+      In(<$AccessAddress,cipher>)
+    ]
+    --[
+      ControllerRevCiphertext(<Role,$pid>),
+      LableProcess($pid),
+      RevEncryptedMSG(<'SpecificKeys',rand2Key(~keys)>)
+    ]->
+    [
+      OutS2D(<'HCI', <'ACL','Controller2Host'>>, $DevID, $HostID, <$ChannelHandle, <'SpecificKeys',rand2Key(~keys)>>)
+    ]!>)
+  changequote
+  divert(0)dnl
+  dnl ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  
+  Generate_CtrllerSendEncryptedKeys()
+
+  Generate_CtrllerRevEncryptedKeys(peripheral,'Peripheral','Centeral')
+
+  Generate_CtrllerRevEncryptedKeys(centeral,'Centeral','Peripheral')

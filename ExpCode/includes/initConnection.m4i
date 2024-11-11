@@ -1,0 +1,137 @@
+/*
+* ****************************************************************
+*                    Initialization                  
+* ****************************************************************
+*/
+  //* Generate Initiator Host
+  rule createInitHost [color=#55bb8a]:
+    let
+      Role = 'Initiator' changequote(<!,!>) 
+      ifdef(<!IDisplayOnly!>, LocalIOCap = DisplayOnly, 
+        ifdef(<!IDisplayYesNo!>, LocalIOCap = DisplayYesNo, 
+        ifdef(<!IKeyboardOnly!>, LocalIOCap = KeyboardOnly,
+        ifdef(<!INoInputNoOutput!>, LocalIOCap = NoInputNoOutput,
+        ifdef(<!IKeyboardDisplay!>, LocalIOCap = KeyboardDisplay))))) dnl
+
+      ifdef(<!IOOBSendRev!>, <!OOBSend = True
+      OOBRev = True!>,
+        ifdef(<!IOOBSend!>, <!OOBSend = True
+      OOBRev = False!>,
+        ifdef(<!IOOBRev!>, <!OOBSend = False
+      OOBRev = True!>,
+        ifdef(<!INoOOB!>, <!OOBSend = False
+      OOBRev = False!>))))
+      OOBCap = <OOBSend,OOBRev> dnl
+      
+      ifdef(<!IAuthReq!>, LocalAuthReq = True, 
+        ifdef(<!INoAuthReq!>, LocalAuthReq = False)) dnl
+
+      ifdef(<!IKeyHigh!>, <!LocalMaxEncKeySize = '16'!>,
+        ifdef(<!IKeyLow!>, <!LocalMaxEncKeySize = '7'!>)) changequote
+    in
+    []
+    --[
+      // Only one Initiator Host
+      OnlyOnceV(Role),
+      AuthReq($HostID,LocalAuthReq)
+    ]->
+    [
+      HostStateCreated('Created',<$HostID,Role,LocalIOCap,OOBCap,LocalAuthReq,LocalMaxEncKeySize>)
+    ]
+
+  //* Generate Responder Host
+  rule createResHost [color=#fb8b05]:
+    let
+      Role = 'Responder' changequote(<!,!>) 
+      ifdef(<!RDisplayOnly!>, LocalIOCap = DisplayOnly, 
+        ifdef(<!RDisplayYesNo!>, LocalIOCap = DisplayYesNo, 
+        ifdef(<!RKeyboardOnly!>, LocalIOCap = KeyboardOnly,
+        ifdef(<!RNoInputNoOutput!>, LocalIOCap = NoInputNoOutput,
+        ifdef(<!RKeyboardDisplay!>, LocalIOCap = KeyboardDisplay))))) dnl
+
+      ifdef(<!ROOBSendRev!>, <!OOBSend = True
+      OOBRev = True!>,
+        ifdef(<!ROOBSend!>, <!OOBSend = True
+      OOBRev = False!>,
+        ifdef(<!ROOBRev!>, <!OOBSend = False
+      OOBRev = True!>,
+        ifdef(<!RNoOOB!>, <!OOBSend = False
+      OOBRev = False!>))))
+      OOBCap = <OOBSend,OOBRev> dnl
+
+      ifdef(<!RAuthReq!>, LocalAuthReq = True, 
+        ifdef(<!RNoAuthReq!>, LocalAuthReq = False)) dnl
+
+      ifdef(<!RKeyHigh!>, <!LocalMaxEncKeySize = '16'!>,
+        ifdef(<!RKeyLow!>, <!LocalMaxEncKeySize = '7'!>)) changequote
+    in
+    []
+    --[OnlyOnceV(Role),
+      AuthReq($HostID,LocalAuthReq)
+    ]->
+    [
+      HostStateCreated('Created',<$HostID,Role,LocalIOCap,OOBCap,LocalAuthReq,LocalMaxEncKeySize>)
+    ]
+
+  //* Generate Controller
+  rule createController [color=#e4bf11]:
+    []
+    --[]->
+    [
+      !ControllerStateCreated('Created',<$DevID,$BTAddress>)
+    ]
+
+  //* Bind Controller to Host
+  rule bindHostCtroller [color=#8076a3]:
+    [
+      HostStateCreated('Created',<$HostID,Role,LocalIOCap,OOBCap,LocalAuthReq,LocalMaxEncKeySize>),
+      !ControllerStateCreated('Created',<$DevID,$BTAddress>)
+    ]
+    --[
+      BindHostBTAddress($HostID,$BTAddress),
+      OnlyOnceV(<'ControllerOnlyBind2OneHost',$DevID>)
+    ]->
+    [
+      !HostCtrollerBinded($HostID,Role,LocalIOCap,OOBCap,LocalAuthReq,LocalMaxEncKeySize,$DevID,$BTAddress)
+    ]
+
+  
+  rule initConnection [color=#8076a3]:
+    [
+      !HostCtrollerBinded(HostIDInit,'Initiator',InitIOCap,InitOOBCap,InitAuthReq,InitMaxEncKeySize,$CDevID,$CBTAddress),
+      !HostCtrollerBinded(HostIDResp,'Responder',RespIOCap,RespOOBCap,RespAuthReq,RespMaxEncKeySize,$PDevID,$PBTAddress),
+      Fr(~InitDHsk),
+      Fr(~ResDHsk)
+    ]
+    --[
+      Neq($CBTAddress,$PBTAddress),
+      SecretPrivateKey(~InitDHsk),
+      SecretPrivateKey(~ResDHsk),
+      CreateProcess('Initiator',$pidI),
+      CreateProcess('Responder',$pidR),
+      CreateProcess('Centeral',$pidC),
+      CreateProcess('Peripheral',$pidP),
+      HostSession($sid),
+      DeviceConnect(HostIDInit, HostIDResp, $pidI, $pidR),
+      FreshEachConnection($ChannelHandleC),
+      FreshEachConnection($ChannelHandleP),
+      FreshEachConnection($AccessAddress),
+      FreshEachConnection($pidI),
+      FreshEachConnection($pidR),
+      FreshEachConnection($pidC),
+      FreshEachConnection($pidP),
+      FreshEachConnection($sid),
+      DevicesOOBCaps(HostIDInit,InitOOBCap,HostIDResp,RespOOBCap,$pidI,$pidR),
+      Running($CBTAddress,$PBTAddress,<'IOCaps',InitIOCap>),
+      Running($PBTAddress,$CBTAddress,<'IOCaps',RespIOCap>)
+    ]->
+    [
+      !HostStateLinkConnected('LinkConnected',<HostIDInit,'Initiator',$pidI,$sid,InitIOCap,InitOOBCap,InitAuthReq,InitMaxEncKeySize,$CDevID,$CBTAddress,HostIDResp,$PBTAddress,$ChannelHandleC,~InitDHsk>),
+      !HostStateLinkConnected('LinkConnected',<HostIDResp,'Responder',$pidR,$sid,RespIOCap,RespOOBCap,RespAuthReq,RespMaxEncKeySize,$PDevID,$PBTAddress,HostIDInit,$CBTAddress,$ChannelHandleP,~ResDHsk>),
+      !ControllerStateConnection('Connection',<$CDevID,HostIDInit,$CBTAddress,$ChannelHandleC,'Centeral',$pidC,$AccessAddress>),
+      !ControllerStateConnection('Connection',<$PDevID,HostIDResp,$PBTAddress,$ChannelHandleP,'Peripheral',$pidP,$AccessAddress>),
+      // We assume that the user can interact with device only once in one pairing process.
+      UserInteractToken($UserID,HostIDInit,HostIDResp,$pidI,$pidR)
+      // In the countermeasure of USS 2023, the user interacts twice.
+      // Duplicate this Token to allow the user interact twice.
+    ]

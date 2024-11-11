@@ -1,0 +1,62 @@
+/*
+* ****************************************************************
+*                         Restrictions                   
+* ****************************************************************
+*/
+  restriction OnlyOnceV:
+    "
+    All x #i #j. OnlyOnceV(x)@#i & OnlyOnceV(x)@#j ==> #i = #j
+    "
+
+  restriction Inequality:
+    "All x #i. Neq(x,x) @i ==> F"
+
+  
+  restriction StopSendPlaintext:
+  "
+    All x #i #j. ControllerSendPlaintext(x)@i & StopSendRevPlaintext(x)@j ==> i < j
+  "
+  
+  restriction StopRevPlaintext:
+  "
+    All x #i #j. ControllerRevPlaintext(x)@i & StopSendRevPlaintext(x)@j ==> i < j
+  "
+
+  //! Explain this restriction
+  restriction ValueFreshEachConnection:
+  "
+    All x #i #j. FreshEachConnection(x)@i & FreshEachConnection(x)@j ==> #i = #j
+  "
+  
+  // Establish a new connection will terminate the old one.
+  // restriction NewConnectionTerminateOldConnection:
+  // "
+  //   All role pidold pidnew #old #new #i. CreateProcess(role,pidold)@old & CreateProcess(role,pidnew)@new & old < new & LableProcess(pidold)@i ==> i < new
+  // "
+  // restriction NewConnectionTerminateOldConnection:
+  // "
+  //   All role pidold pidnew #old #new. CreateProcess(role,pidold)@old & CreateProcess(role,pidnew)@new & old < new 
+  //     ==> not(Ex #i. LableProcess(pidold)@i & new < i)
+  // "
+
+  restriction SendOOBData:
+  "
+  All hostI ioobsend ioobrev hostR roobsend roobrev pidI pidR #i. DevicesOOBCaps(hostI,<ioobsend,ioobrev>,hostR,<roobsend,roobrev>,pidI,pidR)@i ==> 
+    ((<ioobsend,roobrev>=<True,True> ==> Ex #j. HostRevOOBData(hostR,pidR)@j) &
+    (<ioobrev,roobsend>=<True,True> ==> Ex #j. HostRevOOBData(hostI,pidI)@j))
+  "
+
+  restriction RevOOBDataNeverSendFalseOOBFlag:
+  "
+  All host pid #i. HostRevOOBData(host,pid)@i ==> 
+    not(Ex #j. HostSendReqFalseOOBFlag(pid)@j)
+  "
+
+  // <'HCI', <'ACL','Controller2Host'>>, $DevID, $HostID, <$ChannelHandle, pkMsg>
+  restriction HCIChannel:
+  "
+  (All subType sender receiveer channelHandle msg #i. BrkI(<'HCI',subType>,sender,receiveer,<channelHandle,msg>)@i ==> not(Ex subType2 sender2 receiveer2 msg2 #j. Channel2Dst(<'HCI',subType2>,sender2,receiveer2,<channelHandle,msg2>)@j))
+  &
+  (All subType sender receiveer channelHandle msg #i. Channel2Dst(<'HCI',subType>,sender,receiveer,<channelHandle,msg>)@i ==> not(Ex subType2 sender2 receiveer2 msg2 #j. BrkI(<'HCI',subType2>,sender2,receiveer2,<channelHandle,msg2>)@j))   
+  "
+  
