@@ -1,0 +1,220 @@
+mapIOCaps2AssM/2.
+selectAssM/6.
+DisplayOnly/0.
+DisplayYesNo/0.
+KeyboardOnly/0.
+NoInputNoOutput/0.
+KeyboardDisplay/0.
+JW/0.
+NC/0.
+PEII/0.
+PEID/0.
+PEDI/0.
+OOBAS/0.
+True/0.
+False/0.
+
+False < True < JW < PEII < PEDI < PEID < NC < OOBAS < NoInputNoOutput < KeyboardOnly < DisplayOnly < DisplayYesNo < KeyboardDisplay < mapIOCaps2AssM < selectAssM.
+
+=== Equational Theory
+
+selectAssM(x1, True, x3, x4, x5, x6)            = OOBAS.
+selectAssM(True, x2, x3, x4, x5, x6)            = OOBAS.
+selectAssM(False, False, False, False, x5, x6)  = JW.
+selectAssM(False, False, True, x4, x5, x6)      = mapIOCaps2AssM(x5, x6).
+selectAssM(False, False, x3, True, x5, x6)      = mapIOCaps2AssM(x5, x6).
+mapIOCaps2AssM(DisplayOnly,DisplayOnly)         = JW.
+mapIOCaps2AssM(DisplayOnly,DisplayYesNo)        = JW.
+mapIOCaps2AssM(DisplayOnly,KeyboardOnly)        = PEDI.
+mapIOCaps2AssM(DisplayOnly,KeyboardDisplay)     = PEDI.
+mapIOCaps2AssM(DisplayYesNo,DisplayOnly)        = JW.
+mapIOCaps2AssM(DisplayYesNo,DisplayYesNo)       = NC.
+mapIOCaps2AssM(DisplayYesNo,KeyboardOnly)       = PEDI.
+mapIOCaps2AssM(DisplayYesNo,KeyboardDisplay)    = NC.
+mapIOCaps2AssM(KeyboardOnly,DisplayOnly)        = PEID.
+mapIOCaps2AssM(KeyboardOnly,DisplayYesNo)       = PEID.
+mapIOCaps2AssM(KeyboardOnly,KeyboardOnly)       = PEII.
+mapIOCaps2AssM(KeyboardOnly,KeyboardDisplay)    = PEID.
+mapIOCaps2AssM(KeyboardDisplay,DisplayOnly)     = PEID.
+mapIOCaps2AssM(KeyboardDisplay,DisplayYesNo)    = NC.
+mapIOCaps2AssM(KeyboardDisplay,KeyboardOnly)    = PEDI.
+mapIOCaps2AssM(KeyboardDisplay,KeyboardDisplay) = NC.
+mapIOCaps2AssM(NoInputNoOutput,x)               = JW.
+mapIOCaps2AssM(x,NoInputNoOutput)               = JW.
+
+(*
+
+Result with option -oc: 2.864s user 0.263s sys 2.918s real
+Final number of rules in R (minus the name and bin rule): 74
+Number of rules computed: 2257
+Shown convergent: yes
+
+---Extended signature
+Rewrite system R:
+  name(X_1) -> name(X_1)
+  bin(X_2,X_1) -> bin(X_2,X_1)
+  selectAssM(X_6,X_5,X_4,X_3,X_2,X_1) -> selectAssM(X_6,X_5,X_4,X_3,X_2,X_1)
+  mapIOCaps2AssM(X_2,X_1) -> mapIOCaps2AssM(X_2,X_1)
+  KeyboardDisplay -> KeyboardDisplay
+  DisplayYesNo -> DisplayYesNo
+  DisplayOnly -> DisplayOnly
+  KeyboardOnly -> KeyboardOnly
+  NoInputNoOutput -> NoInputNoOutput
+  OOBAS -> OOBAS
+  NC -> NC
+  PEID -> PEID
+  PEDI -> PEDI
+  PEII -> PEII
+  JW -> JW
+  True -> True
+  False -> False
+  selectAssM(False,False,True,X_1,X_2,NoInputNoOutput) -> JW
+  selectAssM(False,False,X_1,True,X_2,NoInputNoOutput) -> JW
+  selectAssM(False,False,True,X_1,NoInputNoOutput,X_2) -> JW
+  selectAssM(False,False,X_1,True,NoInputNoOutput,X_2) -> JW
+  selectAssM(False,False,True,X_1,KeyboardDisplay,KeyboardDisplay) -> NC
+  selectAssM(False,False,X_1,True,KeyboardDisplay,KeyboardDisplay) -> NC
+  selectAssM(False,False,True,X_1,KeyboardDisplay,KeyboardOnly) -> PEDI
+  selectAssM(False,False,X_1,True,KeyboardDisplay,KeyboardOnly) -> PEDI
+  selectAssM(False,False,True,X_1,KeyboardDisplay,DisplayYesNo) -> NC
+  selectAssM(False,False,X_1,True,KeyboardDisplay,DisplayYesNo) -> NC
+  selectAssM(False,False,True,X_1,KeyboardDisplay,DisplayOnly) -> PEID
+  selectAssM(False,False,X_1,True,KeyboardDisplay,DisplayOnly) -> PEID
+  selectAssM(False,False,True,X_1,KeyboardOnly,KeyboardDisplay) -> PEID
+  selectAssM(False,False,X_1,True,KeyboardOnly,KeyboardDisplay) -> PEID
+  selectAssM(False,False,True,X_1,KeyboardOnly,KeyboardOnly) -> PEII
+  selectAssM(False,False,X_1,True,KeyboardOnly,KeyboardOnly) -> PEII
+  selectAssM(False,False,True,X_1,KeyboardOnly,DisplayYesNo) -> PEID
+  selectAssM(False,False,X_1,True,KeyboardOnly,DisplayYesNo) -> PEID
+  selectAssM(False,False,True,X_1,KeyboardOnly,DisplayOnly) -> PEID
+  selectAssM(False,False,X_1,True,KeyboardOnly,DisplayOnly) -> PEID
+  selectAssM(False,False,True,X_1,DisplayYesNo,KeyboardDisplay) -> NC
+  selectAssM(False,False,X_1,True,DisplayYesNo,KeyboardDisplay) -> NC
+  selectAssM(False,False,True,X_1,DisplayYesNo,KeyboardOnly) -> PEDI
+  selectAssM(False,False,X_1,True,DisplayYesNo,KeyboardOnly) -> PEDI
+  selectAssM(False,False,True,X_1,DisplayYesNo,DisplayYesNo) -> NC
+  selectAssM(False,False,X_1,True,DisplayYesNo,DisplayYesNo) -> NC
+  selectAssM(False,False,True,X_1,DisplayYesNo,DisplayOnly) -> JW
+  selectAssM(False,False,X_1,True,DisplayYesNo,DisplayOnly) -> JW
+  selectAssM(False,False,True,X_1,DisplayOnly,KeyboardDisplay) -> PEDI
+  selectAssM(False,False,X_1,True,DisplayOnly,KeyboardDisplay) -> PEDI
+  selectAssM(False,False,True,X_1,DisplayOnly,KeyboardOnly) -> PEDI
+  selectAssM(False,False,X_1,True,DisplayOnly,KeyboardOnly) -> PEDI
+  selectAssM(False,False,True,X_1,DisplayOnly,DisplayYesNo) -> JW
+  selectAssM(False,False,X_1,True,DisplayOnly,DisplayYesNo) -> JW
+  selectAssM(False,False,True,X_1,DisplayOnly,DisplayOnly) -> JW
+  selectAssM(False,False,X_1,True,DisplayOnly,DisplayOnly) -> JW
+  mapIOCaps2AssM(X_1,NoInputNoOutput) -> JW
+  mapIOCaps2AssM(NoInputNoOutput,X_1) -> JW
+  mapIOCaps2AssM(KeyboardDisplay,KeyboardDisplay) -> NC
+  mapIOCaps2AssM(KeyboardDisplay,KeyboardOnly) -> PEDI
+  mapIOCaps2AssM(KeyboardDisplay,DisplayYesNo) -> NC
+  mapIOCaps2AssM(KeyboardDisplay,DisplayOnly) -> PEID
+  mapIOCaps2AssM(KeyboardOnly,KeyboardDisplay) -> PEID
+  mapIOCaps2AssM(KeyboardOnly,KeyboardOnly) -> PEII
+  mapIOCaps2AssM(KeyboardOnly,DisplayYesNo) -> PEID
+  mapIOCaps2AssM(KeyboardOnly,DisplayOnly) -> PEID
+  mapIOCaps2AssM(DisplayYesNo,KeyboardDisplay) -> NC
+  mapIOCaps2AssM(DisplayYesNo,KeyboardOnly) -> PEDI
+  mapIOCaps2AssM(DisplayYesNo,DisplayYesNo) -> NC
+  mapIOCaps2AssM(DisplayYesNo,DisplayOnly) -> JW
+  mapIOCaps2AssM(DisplayOnly,KeyboardDisplay) -> PEDI
+  mapIOCaps2AssM(DisplayOnly,KeyboardOnly) -> PEDI
+  mapIOCaps2AssM(DisplayOnly,DisplayYesNo) -> JW
+  mapIOCaps2AssM(DisplayOnly,DisplayOnly) -> JW
+  selectAssM(False,False,X_3,True,X_1,X_2) -> mapIOCaps2AssM(X_1,X_2)
+  selectAssM(False,False,True,X_3,X_1,X_2) -> mapIOCaps2AssM(X_1,X_2)
+  selectAssM(False,False,False,False,X_1,X_2) -> JW
+  selectAssM(True,X_1,X_2,X_3,X_4,X_5) -> OOBAS
+  selectAssM(X_1,True,X_2,X_3,X_4,X_5) -> OOBAS
+Rewrite system Rn:
+  selectAssM(X_1,True,X_2,X_3,X_4,X_5) -> OOBAS
+  selectAssM(True,X_1,X_2,X_3,X_4,X_5) -> OOBAS
+  selectAssM(False,False,False,False,X_1,X_2) -> JW
+  selectAssM(False,False,True,X_3,X_1,X_2) -> mapIOCaps2AssM(X_1,X_2)
+  selectAssM(False,False,X_3,True,X_1,X_2) -> mapIOCaps2AssM(X_1,X_2)
+  mapIOCaps2AssM(DisplayOnly,DisplayOnly) -> JW
+  mapIOCaps2AssM(DisplayOnly,DisplayYesNo) -> JW
+  mapIOCaps2AssM(DisplayOnly,KeyboardOnly) -> PEDI
+  mapIOCaps2AssM(DisplayOnly,KeyboardDisplay) -> PEDI
+  mapIOCaps2AssM(DisplayYesNo,DisplayOnly) -> JW
+  mapIOCaps2AssM(DisplayYesNo,DisplayYesNo) -> NC
+  mapIOCaps2AssM(DisplayYesNo,KeyboardOnly) -> PEDI
+  mapIOCaps2AssM(DisplayYesNo,KeyboardDisplay) -> NC
+  mapIOCaps2AssM(KeyboardOnly,DisplayOnly) -> PEID
+  mapIOCaps2AssM(KeyboardOnly,DisplayYesNo) -> PEID
+  mapIOCaps2AssM(KeyboardOnly,KeyboardOnly) -> PEII
+  mapIOCaps2AssM(KeyboardOnly,KeyboardDisplay) -> PEID
+  mapIOCaps2AssM(KeyboardDisplay,DisplayOnly) -> PEID
+  mapIOCaps2AssM(KeyboardDisplay,DisplayYesNo) -> NC
+  mapIOCaps2AssM(KeyboardDisplay,KeyboardOnly) -> PEDI
+  mapIOCaps2AssM(KeyboardDisplay,KeyboardDisplay) -> NC
+  mapIOCaps2AssM(NoInputNoOutput,X_1) -> JW
+  mapIOCaps2AssM(X_1,NoInputNoOutput) -> JW
+Equations En
+  Empty
+
+The following rewrite system is En-convergent for E
+  selectAssM(False,False,True,X_1,X_2,NoInputNoOutput) -> JW
+  selectAssM(False,False,X_1,True,X_2,NoInputNoOutput) -> JW
+  selectAssM(False,False,True,X_1,NoInputNoOutput,X_2) -> JW
+  selectAssM(False,False,X_1,True,NoInputNoOutput,X_2) -> JW
+  selectAssM(False,False,True,X_1,KeyboardDisplay,KeyboardDisplay) -> NC
+  selectAssM(False,False,X_1,True,KeyboardDisplay,KeyboardDisplay) -> NC
+  selectAssM(False,False,True,X_1,KeyboardDisplay,KeyboardOnly) -> PEDI
+  selectAssM(False,False,X_1,True,KeyboardDisplay,KeyboardOnly) -> PEDI
+  selectAssM(False,False,True,X_1,KeyboardDisplay,DisplayYesNo) -> NC
+  selectAssM(False,False,X_1,True,KeyboardDisplay,DisplayYesNo) -> NC
+  selectAssM(False,False,True,X_1,KeyboardDisplay,DisplayOnly) -> PEID
+  selectAssM(False,False,X_1,True,KeyboardDisplay,DisplayOnly) -> PEID
+  selectAssM(False,False,True,X_1,KeyboardOnly,KeyboardDisplay) -> PEID
+  selectAssM(False,False,X_1,True,KeyboardOnly,KeyboardDisplay) -> PEID
+  selectAssM(False,False,True,X_1,KeyboardOnly,KeyboardOnly) -> PEII
+  selectAssM(False,False,X_1,True,KeyboardOnly,KeyboardOnly) -> PEII
+  selectAssM(False,False,True,X_1,KeyboardOnly,DisplayYesNo) -> PEID
+  selectAssM(False,False,X_1,True,KeyboardOnly,DisplayYesNo) -> PEID
+  selectAssM(False,False,True,X_1,KeyboardOnly,DisplayOnly) -> PEID
+  selectAssM(False,False,X_1,True,KeyboardOnly,DisplayOnly) -> PEID
+  selectAssM(False,False,True,X_1,DisplayYesNo,KeyboardDisplay) -> NC
+  selectAssM(False,False,X_1,True,DisplayYesNo,KeyboardDisplay) -> NC
+  selectAssM(False,False,True,X_1,DisplayYesNo,KeyboardOnly) -> PEDI
+  selectAssM(False,False,X_1,True,DisplayYesNo,KeyboardOnly) -> PEDI
+  selectAssM(False,False,True,X_1,DisplayYesNo,DisplayYesNo) -> NC
+  selectAssM(False,False,X_1,True,DisplayYesNo,DisplayYesNo) -> NC
+  selectAssM(False,False,True,X_1,DisplayYesNo,DisplayOnly) -> JW
+  selectAssM(False,False,X_1,True,DisplayYesNo,DisplayOnly) -> JW
+  selectAssM(False,False,True,X_1,DisplayOnly,KeyboardDisplay) -> PEDI
+  selectAssM(False,False,X_1,True,DisplayOnly,KeyboardDisplay) -> PEDI
+  selectAssM(False,False,True,X_1,DisplayOnly,KeyboardOnly) -> PEDI
+  selectAssM(False,False,X_1,True,DisplayOnly,KeyboardOnly) -> PEDI
+  selectAssM(False,False,True,X_1,DisplayOnly,DisplayYesNo) -> JW
+  selectAssM(False,False,X_1,True,DisplayOnly,DisplayYesNo) -> JW
+  selectAssM(False,False,True,X_1,DisplayOnly,DisplayOnly) -> JW
+  selectAssM(False,False,X_1,True,DisplayOnly,DisplayOnly) -> JW
+  mapIOCaps2AssM(X_1,NoInputNoOutput) -> JW
+  mapIOCaps2AssM(NoInputNoOutput,X_1) -> JW
+  mapIOCaps2AssM(KeyboardDisplay,KeyboardDisplay) -> NC
+  mapIOCaps2AssM(KeyboardDisplay,KeyboardOnly) -> PEDI
+  mapIOCaps2AssM(KeyboardDisplay,DisplayYesNo) -> NC
+  mapIOCaps2AssM(KeyboardDisplay,DisplayOnly) -> PEID
+  mapIOCaps2AssM(KeyboardOnly,KeyboardDisplay) -> PEID
+  mapIOCaps2AssM(KeyboardOnly,KeyboardOnly) -> PEII
+  mapIOCaps2AssM(KeyboardOnly,DisplayYesNo) -> PEID
+  mapIOCaps2AssM(KeyboardOnly,DisplayOnly) -> PEID
+  mapIOCaps2AssM(DisplayYesNo,KeyboardDisplay) -> NC
+  mapIOCaps2AssM(DisplayYesNo,KeyboardOnly) -> PEDI
+  mapIOCaps2AssM(DisplayYesNo,DisplayYesNo) -> NC
+  mapIOCaps2AssM(DisplayYesNo,DisplayOnly) -> JW
+  mapIOCaps2AssM(DisplayOnly,KeyboardDisplay) -> PEDI
+  mapIOCaps2AssM(DisplayOnly,KeyboardOnly) -> PEDI
+  mapIOCaps2AssM(DisplayOnly,DisplayYesNo) -> JW
+  mapIOCaps2AssM(DisplayOnly,DisplayOnly) -> JW
+  selectAssM(False,False,X_3,True,X_1,X_2) -> mapIOCaps2AssM(X_1,X_2)
+  selectAssM(False,False,True,X_3,X_1,X_2) -> mapIOCaps2AssM(X_1,X_2)
+  selectAssM(False,False,False,False,X_1,X_2) -> JW
+  selectAssM(True,X_1,X_2,X_3,X_4,X_5) -> OOBAS
+  selectAssM(X_1,True,X_2,X_3,X_4,X_5) -> OOBAS
+
+Number of rules computed: 2257
+
+*)
