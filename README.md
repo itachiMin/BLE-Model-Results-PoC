@@ -3,6 +3,7 @@
 - `./ExpCode` // Formal models
 - `./ExpRun` // Scripts for verifying models and crawling attack graphs
 - `./relaxedAssumption` // Models with relaxed assumptions and verification results for them
+- `./BLE_SC_Asso_Model_Selection.txt` // Result of verification of FVP for equations used to formalize the association model selection logic
 
 
 # Prepare
