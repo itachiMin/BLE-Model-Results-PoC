@@ -1,0 +1,9 @@
+.myvenv
+.vscode
+__pycache__
+ExpRun/cases
+ExpRun/files
+ExpRun/results
+ExpCode/cases
+*.log
+*.json
