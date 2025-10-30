@@ -4,9 +4,8 @@
         "port": 22,
         "username": "Your Username",
         "password": "Your Password",
-        "workdir": "Absolute Path to Working Directory (/home/xxx/ble_exp)",
-        "workers": 4, // Number of docker containers on this server.
-        "weight": 1 // Unused but do not delete it.
+        "workdir": "Absolute Path to Working Directory (/tmp/xxx/ble_exp)",
+        "workers": 4, // Number of docker containers on this server. Delete this comment
+        "weight": 1 // Unused but do not delete it. Delete this comment
     }
 ]
-
