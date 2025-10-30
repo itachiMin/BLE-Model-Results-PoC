@@ -45,12 +45,12 @@ The verification process requires **Ubuntu 24.04** and involves the following st
 
 ```bash
 # Install dependencies
-apt install make m4 python3.12-venv
+apt install make m4 python3-venv
 
 # Set up Python environment
-python -m venv myenv
-source myenv/bin/activate
-pip install -r requirements.txt
+python3 -m venv .myvenv
+source .myvenv/bin/activate
+pip3 install -r requirements.txt
 
 # Run verification (this will take several weeks)
 make all
