@@ -26,7 +26,7 @@ This repository contains the formal models, verification scripts, and attack imp
 ```bash
 # Update system and install required packages
 sudo apt update
-sudo apt install -y docker.io openssh-server make m4 python3-venv curl
+sudo apt install -y docker.io openssh-server make m4 python3-venv curl git
 
 # Add user to docker group (requires re-login)
 sudo usermod -aG docker $USER
@@ -34,7 +34,17 @@ sudo usermod -aG docker $USER
 
 **Notes**: Make sure SSH and Docker services are running properly. User must have permissions to run Docker commands without `sudo`.
 
-### 2. Set Up Python Environment
+### 2. Clone Repository
+
+```bash
+# Clone this repository with the artifact-eval branch
+git clone --branch artifact-eval --single-branch --depth 1 https://github.com/itachiMin/BLE-Model-Results-PoC.git
+cd BLE-Model-Results-PoC/
+```
+
+**Notes**: All subsequent operations are performed in the cloned repository directory `BLE-Model-Results-PoC`.
+
+### 3. Set Up Python Environment
 
 ```bash
 # Create and activate Python virtual environment
@@ -43,7 +53,7 @@ source .myvenv/bin/activate
 pip3 install -r requirements.txt
 ```
 
-### 3. Download Docker Image and Required Files
+### 4. Download Docker Image and Required Files
 
 ```bash
 # Download Tamarin Prover Docker image
@@ -62,9 +72,9 @@ curl -L -o ./ExpRun/files/tamarin-container_1.8.0.tar \
 ```
 
 
-### 4. Configure Server Settings
+### 5. Configure Server Settings
 
-Edit `./ExpRun/servers.json` to use local machine only:
+Edit `ExpRun/servers.json` to use local machine only:
 
 ```json
 [
@@ -125,13 +135,16 @@ python3 crawler.py
 ```
 
 ### Verification Results
-Complete verification results are available at the following link:
-[https://app.filen.io/#/d/acaf1c69-a587-4b18-9b3b-1eea87dfdbc1#Kby607qruJelRAGP1fsfErf1NZDmS46W](https://app.filen.io/#/d/acaf1c69-a587-4b18-9b3b-1eea87dfdbc1#Kby607qruJelRAGP1fsfErf1NZDmS46W)
+The complete verification results can be accessed at the following links:
+
+* **GitHub Release**: [https://github.com/itachiMin/BLE-Model-Results-PoC/releases/download/v1.0.0/results.tar.gz](https://github.com/itachiMin/BLE-Model-Results-PoC/releases/download/v1.0.0/results.tar.gz)
+* **Filen.io**: [https://app.filen.io/#/d/acaf1c69-a587-4b18-9b3b-1eea87dfdbc1#Kby607qruJelRAGP1fsfErf1NZDmS46W](https://app.filen.io/#/d/acaf1c69-a587-4b18-9b3b-1eea87dfdbc1#Kby607qruJelRAGP1fsfErf1NZDmS46W)
 
 ### Attack Graphs
-Complete attack graphs are available at the following link:
-[https://app.filen.io/#/d/c1be86c4-2540-44e3-ba5c-0e662c223dd1#28Y2GqSbuZWc7exubjmpWSyDzSUvyZel](https://app.filen.io/#/d/c1be86c4-2540-44e3-ba5c-0e662c223dd1#28Y2GqSbuZWc7exubjmpWSyDzSUvyZel)
+Complete attack graphs are available at the following links:
 
+* **GitHub Release**: [https://github.com/itachiMin/BLE-Model-Results-PoC/releases/download/v1.0.0/proofs.tar.gz](https://github.com/itachiMin/BLE-Model-Results-PoC/releases/download/v1.0.0/proofs.tar.gz)
+* **Filen.io**: [https://app.filen.io/#/d/c1be86c4-2540-44e3-ba5c-0e662c223dd1#28Y2GqSbuZWc7exubjmpWSyDzSUvyZel](https://app.filen.io/#/d/c1be86c4-2540-44e3-ba5c-0e662c223dd1#28Y2GqSbuZWc7exubjmpWSyDzSUvyZel)
 
 ## 📝 Notes for AE Reproduction
 
