@@ -1,0 +1,226 @@
+[
+    {
+        "init": [
+            "DisplayOnly",
+            "NoOOB",
+            "AuthReq",
+            "KeyHigh"
+        ],
+        "resp": [
+            "NoInputNoOutput",
+            "NoOOB",
+            "NoAuthReq",
+            "KeyHigh"
+        ]
+    },
+    {
+        "init": [
+            "DisplayOnly",
+            "NoOOB",
+            "NoAuthReq",
+            "KeyHigh"
+        ],
+        "resp": [
+            "DisplayOnly",
+            "NoOOB",
+            "NoAuthReq",
+            "KeyHigh"
+        ]
+    },
+    {
+        "init": [
+            "DisplayOnly",
+            "NoOOB",
+            "NoAuthReq",
+            "KeyHigh"
+        ],
+        "resp": [
+            "NoInputNoOutput",
+            "NoOOB",
+            "NoAuthReq",
+            "KeyHigh"
+        ]
+    },
+    {
+        "init": [
+            "DisplayYesNo",
+            "NoOOB",
+            "AuthReq",
+            "KeyHigh"
+        ],
+        "resp": [
+            "DisplayYesNo",
+            "NoOOB",
+            "NoAuthReq",
+            "KeyHigh"
+        ]
+    },
+    {
+        "init": [
+            "DisplayYesNo",
+            "NoOOB",
+            "AuthReq",
+            "KeyHigh"
+        ],
+        "resp": [
+            "NoInputNoOutput",
+            "NoOOB",
+            "NoAuthReq",
+            "KeyHigh"
+        ]
+    },
+    {
+        "init": [
+            "DisplayYesNo",
+            "NoOOB",
+            "NoAuthReq",
+            "KeyHigh"
+        ],
+        "resp": [
+            "DisplayYesNo",
+            "NoOOB",
+            "AuthReq",
+            "KeyHigh"
+        ]
+    },
+    {
+        "init": [
+            "DisplayYesNo",
+            "NoOOB",
+            "NoAuthReq",
+            "KeyHigh"
+        ],
+        "resp": [
+            "NoInputNoOutput",
+            "NoOOB",
+            "NoAuthReq",
+            "KeyHigh"
+        ]
+    },
+    {
+        "init": [
+            "KeyboardDisplay",
+            "NoOOB",
+            "AuthReq",
+            "KeyHigh"
+        ],
+        "resp": [
+            "NoInputNoOutput",
+            "NoOOB",
+            "NoAuthReq",
+            "KeyHigh"
+        ]
+    },
+    {
+        "init": [
+            "KeyboardDisplay",
+            "NoOOB",
+            "NoAuthReq",
+            "KeyHigh"
+        ],
+        "resp": [
+            "NoInputNoOutput",
+            "NoOOB",
+            "NoAuthReq",
+            "KeyHigh"
+        ]
+    },
+    {
+        "init": [
+            "KeyboardOnly",
+            "NoOOB",
+            "NoAuthReq",
+            "KeyHigh"
+        ],
+        "resp": [
+            "NoInputNoOutput",
+            "NoOOB",
+            "NoAuthReq",
+            "KeyHigh"
+        ]
+    },
+    {
+        "init": [
+            "NoInputNoOutput",
+            "NoOOB",
+            "NoAuthReq",
+            "KeyHigh"
+        ],
+        "resp": [
+            "DisplayOnly",
+            "NoOOB",
+            "AuthReq",
+            "KeyHigh"
+        ]
+    },
+    {
+        "init": [
+            "NoInputNoOutput",
+            "NoOOB",
+            "NoAuthReq",
+            "KeyHigh"
+        ],
+        "resp": [
+            "DisplayYesNo",
+            "NoOOB",
+            "AuthReq",
+            "KeyHigh"
+        ]
+    },
+    {
+        "init": [
+            "NoInputNoOutput",
+            "NoOOB",
+            "NoAuthReq",
+            "KeyHigh"
+        ],
+        "resp": [
+            "DisplayYesNo",
+            "NoOOB",
+            "NoAuthReq",
+            "KeyHigh"
+        ]
+    },
+    {
+        "init": [
+            "NoInputNoOutput",
+            "NoOOB",
+            "NoAuthReq",
+            "KeyHigh"
+        ],
+        "resp": [
+            "KeyboardOnly",
+            "NoOOB",
+            "AuthReq",
+            "KeyHigh"
+        ]
+    },
+    {
+        "init": [
+            "NoInputNoOutput",
+            "NoOOB",
+            "NoAuthReq",
+            "KeyHigh"
+        ],
+        "resp": [
+            "KeyboardOnly",
+            "NoOOB",
+            "NoAuthReq",
+            "KeyHigh"
+        ]
+    },
+    {
+        "init": [
+            "NoInputNoOutput",
+            "NoOOB",
+            "NoAuthReq",
+            "KeyHigh"
+        ],
+        "resp": [
+            "NoInputNoOutput",
+            "NoOOB",
+            "NoAuthReq",
+            "KeyHigh"
+        ]
+    }
+]
